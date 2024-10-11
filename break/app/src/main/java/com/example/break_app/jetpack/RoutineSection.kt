@@ -1,4 +1,4 @@
-package com.example.break_app
+package com.example.break_app.jetpack
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box

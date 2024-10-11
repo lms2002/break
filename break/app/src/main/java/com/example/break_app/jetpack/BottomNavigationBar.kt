@@ -1,4 +1,4 @@
-package com.example.break_app
+package com.example.break_app.jetpack
 
 import androidx.compose.foundation.Image
 import androidx.compose.material3.NavigationBar
@@ -10,12 +10,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
+import com.example.break_app.R
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(navController: NavController, selectedItemIndex: Int) {
     // 하단 내비게이션의 각 항목 정보 설정
     val items = listOf("홈", "내 정보", "기록")
-    var selectedItem by remember { mutableStateOf(0) }
 
     NavigationBar {
         items.forEachIndexed { index, item ->
@@ -34,8 +35,15 @@ fun BottomNavigationBar() {
                     )
                 },
                 label = { Text(item) },
-                selected = selectedItem == index,
-                onClick = { selectedItem = index }
+                selected = selectedItemIndex == index,
+                onClick = {
+                    if (selectedItemIndex != index) {
+                        when (index) {
+                            0 -> navController.navigate("mainScreen")
+                            1 -> navController.navigate("profileScreen")
+                            2 -> navController.navigate("historyScreen")}
+                    }
+                }
             )
         }
     }
