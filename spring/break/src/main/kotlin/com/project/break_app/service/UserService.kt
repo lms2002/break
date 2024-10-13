@@ -4,65 +4,67 @@ import com.project.break_app.domain.User
 import com.project.break_app.domain.PasswordManager
 import com.project.break_app.repository.UserRepository
 import com.project.break_app.repository.PasswordManagerRepository
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import com.project.break_app.domain.UserProfile
 
-
+/**
+ * 사용자 관련 비즈니스 로직을 처리하는 서비스 클래스
+ */
 @Service
 class UserService(
-    @Autowired private val userRepository: UserRepository, // UserRepository 주입
-    @Autowired private val passwordManagerRepository: PasswordManagerRepository, // PasswordManagerRepository 주입
-    @Autowired private val passwordEncoder: BCryptPasswordEncoder // BCryptPasswordEncoder 주입
+    private val userRepository: UserRepository,  // UserRepository를 통한 데이터베이스 상호작용
+    private val passwordManagerRepository: PasswordManagerRepository,  // PasswordManagerRepository를 통한 비밀번호 관리
+    private val passwordEncoder: BCryptPasswordEncoder  // 비밀번호 암호화를 위한 BCryptPasswordEncoder
 ) {
 
     /**
-     * 회원가입 처리 메소드
-     * - 사용자의 사용자명(username) 중복 체크
-     * - 사용자 정보를 User 테이블에 저장
-     * - 비밀번호를 해싱한 후 PasswordManager 테이블에 저장
+     * 사용자 회원가입 처리 메소드
+     * - 사용자명이 중복되지 않으면, 사용자 정보를 저장하고 비밀번호는 해싱하여 PasswordManager에 저장
      */
     fun registerUser(user: User, password: String): User {
-        // 1. 사용자명 중복 체크 (username으로 체크)
-        if (userRepository.findByUsername(user.name) != null) {
-            // 동일한 사용자명이 존재하면 예외를 던짐
+        // 사용자명 중복 체크
+        if (userRepository.findByUserName(user.userName) != null) {
             throw IllegalArgumentException("Username already exists!")
         }
 
-        // 2. 사용자 정보 저장 (User 테이블에)
+        // 사용자 정보 저장
         val savedUser = userRepository.save(user)
 
-        // 3. 비밀번호 해싱 후 저장 (PasswordManager 테이블에)
-        val hashedPassword = passwordEncoder.encode(password) // BCrypt로 비밀번호 해싱
+        // 비밀번호 해싱 후 PasswordManager에 저장
+        val hashedPassword = passwordEncoder.encode(password)
         val passwordManager = PasswordManager(userId = savedUser.userId, password = hashedPassword)
-        passwordManagerRepository.save(passwordManager) // 비밀번호 저장
+        passwordManagerRepository.save(passwordManager)
 
-        // 4. 최종 저장된 사용자 객체 반환
         return savedUser
     }
 
     /**
-     * 사용자명(username)을 기반으로 사용자를 조회하는 메소드
-     * - UserRepository를 통해 username으로 사용자 조회
+     * 사용자명을 기반으로 사용자 정보를 조회하는 메소드
+     * - userName으로 User 엔티티를 조회
      */
-    fun getUserByUsername(username: String): User? {
-        return userRepository.findByUsername(username)
+    fun getUserByUserName(userName: String): User? {
+        return userRepository.findByUserName(userName)
     }
 
-    /**
-     * 사용자 ID(userId)를 기반으로 PasswordManager 테이블에서 비밀번호를 조회하는 메소드
-     */
     fun getPasswordManagerByUserId(userId: Long): PasswordManager? {
         return passwordManagerRepository.findById(userId).orElse(null)
     }
-    fun getUserProfileByUsername(username: String): UserProfile {
-        val user = userRepository.findByUsername(username) // UserRepository에서 사용자 정보를 조회
+
+    /**
+     * 사용자 프로필 조회 메소드
+     * - userName을 기반으로 사용자 정보를 조회하여 UserProfile 객체로 반환
+     */
+    fun getUserProfileByUserName(userName: String): UserProfile? {
+        // 사용자 정보 조회
+        val user = userRepository.findByUserName(userName) ?: throw IllegalArgumentException("User not found")
+
+        // UserProfile 객체로 변환하여 반환
         return UserProfile(
-            username = user.username,
+            userName = user.userName,  // userName 필드 사용
             email = user.email,
             age = user.age,
-            gender = user.gender
+            gender = user.gender.toString()  // Gender enum을 문자열로 변환
         )
     }
 }

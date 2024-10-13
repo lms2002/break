@@ -7,6 +7,7 @@ import jakarta.persistence.*
 @Table(name = "PasswordManager") // 데이터베이스 테이블 이름을 "PasswordManager"로 지정
 data class PasswordManager(
     @Id // userId는 기본 키로 사용
+    @Column(name = "user_id")
     val userId: Long, // User 테이블의 userId와 동일하게 사용
 
     @Column(nullable = false) // 비밀번호는 NULL일 수 없음

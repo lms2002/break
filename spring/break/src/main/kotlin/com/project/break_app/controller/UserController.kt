@@ -1,33 +1,26 @@
 package com.project.break_app.controller
 
-import com.project.break_app.domain.UserProfile // UserProfile 객체는 사용자 프로필 정보를 담는 클래스
-import com.project.break_app.service.UserService // UserService 주입
+import com.project.break_app.domain.UserProfile
+import com.project.break_app.service.UserService
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
+/**
+ * 사용자 관련 API를 처리하는 컨트롤러
+ */
 @RestController
 @RequestMapping("/api/user")
 class UserController(
-    private val userService: UserService // UserService 주입
+    private val userService: UserService  // UserService 주입
 ) {
 
     /**
-     * 사용자 프로필 조회 API
-     * - JWT 토큰으로 인증된 사용자만 접근 가능
-     * - SecurityContextHolder를 통해 현재 인증된 사용자의 정보를 가져옴
+     * 사용자 프로필 조회 요청 처리
      */
     @GetMapping("/profile")
-    fun getUserProfile(): ResponseEntity<UserProfile> {
-        // 1. SecurityContextHolder에서 현재 인증된 사용자의 사용자명(username) 가져오기
-        val username = SecurityContextHolder.getContext().authentication.principal as String
-
-        // 2. UserService에서 사용자명으로 사용자 프로필 정보 조회
-        val userProfile = userService.getUserProfileByUsername(username)
-
-        // 3. 조회된 사용자 프로필 정보를 응답으로 반환
-        return ResponseEntity.ok(userProfile)
+    fun getUserProfile(@RequestParam userName: String): ResponseEntity<UserProfile> {
+        // UserService를 통해 사용자 프로필 조회
+        val userProfile = userService.getUserProfileByUserName(userName)
+        return ResponseEntity.ok(userProfile)  // 조회된 프로필 반환
     }
 }

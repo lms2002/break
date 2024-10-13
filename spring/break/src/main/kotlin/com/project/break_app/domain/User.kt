@@ -4,14 +4,14 @@ import jakarta.persistence.*
 
 // User 테이블에 매핑되는 JPA 엔티티
 @Entity
-@Table(name = "User") // 데이터베이스 테이블 이름을 "User"로 지정
+@Table(name = "user") // 데이터베이스 테이블 이름을 "user"로 지정
 data class User(
     @Id // userId는 기본 키로 사용
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 자동 증가(AUTO_INCREMENT) 설정
     val userId: Long = 0, // 기본 키로 자동 증가하는 값. 초기값은 0
 
     @Column(nullable = false, length = 20) // 이름 필드는 NULL일 수 없고 최대 20자
-    val name: String, // 사용자 이름
+    val userName: String, // 사용자 이름
 
     @Column(nullable = false, length = 30, unique = true) // 이메일 필드는 NULL일 수 없고, 고유한 값이어야 하며, 최대 30자
     val email: String, // 사용자 이메일. 중복 허용되지 않음.

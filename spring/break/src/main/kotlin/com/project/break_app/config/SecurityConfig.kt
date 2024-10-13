@@ -4,6 +4,8 @@ import com.project.break_app.security.JwtAuthenticationFilter
 import com.project.break_app.security.JwtTokenUtil
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -14,28 +16,47 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtTokenUtil: JwtTokenUtil, // JWT 토큰 유틸리티 주입
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter // JWT 필터 주입
+    private val jwtTokenUtil: JwtTokenUtil
 ) {
 
+    /**
+     * 비밀번호 암호화를 위한 BCryptPasswordEncoder 빈 등록
+     */
     @Bean
-    fun passwordEncoder(): BCryptPasswordEncoder {
-        return BCryptPasswordEncoder() // BCryptPasswordEncoder 인스턴스 등록
-    }
+    fun passwordEncoder(): BCryptPasswordEncoder = BCryptPasswordEncoder()
 
+    /**
+     * AuthenticationManager를 빈으로 등록
+     */
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager =
+        authenticationConfiguration.authenticationManager
+
+    /**
+     * JWT 인증 필터를 빈으로 등록
+     */
+    @Bean
+    fun jwtAuthenticationFilter(authenticationManager: AuthenticationManager): JwtAuthenticationFilter =
+        JwtAuthenticationFilter(jwtTokenUtil, authenticationManager)
+
+    /**
+     * Spring Security 설정
+     * - JWT 인증 기반의 Stateless 인증 방식 설정
+     */
+    @Bean
+    fun securityFilterChain(http: HttpSecurity, authenticationManager: AuthenticationManager): SecurityFilterChain {
         http
             .csrf { it.disable() } // CSRF 비활성화
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/api/auth/**").permitAll() // /api/auth 경로는 인증 없이 접근 가능
-                    .anyRequest().authenticated() // 나머지는 인증 필요
+                    .requestMatchers("/api/auth/**").permitAll() // 인증 없이 접근 가능한 경로
+                    .anyRequest().authenticated() // 그 외 모든 경로는 인증 필요
             }
             .sessionManagement { session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션을 사용하지 않음 (Stateless)
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless (세션 사용 안 함)
             }
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java) // JWT 필터 추가
+            .addFilterBefore(jwtAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter::class.java) // JWT 필터 추가
+
         return http.build()
     }
 }
