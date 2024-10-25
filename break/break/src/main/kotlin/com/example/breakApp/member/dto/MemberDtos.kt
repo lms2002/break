@@ -2,6 +2,7 @@ package com.example.breakApp.member.dto
 
 import com.example.breakApp.common.annotation.ValidEnum
 import com.example.breakApp.common.status.Gender
+import com.example.breakApp.member.entity.Member
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
@@ -66,4 +67,13 @@ data class MemberDtoRequest(
     // 성별 값을 Gender Enum으로 변환하여 반환, 값이 null일 경우 예외 발생
     val gender: Gender
         get() = Gender.valueOf(_gender!!)
+
+    fun toEntity(): Member =
+        Member(
+            loginId = loginId,  // null을 전달하거나 적절한 Long 값으로 변경
+            password = password,
+            userName = userName,
+            email = email,
+            gender = gender
+        )
 }

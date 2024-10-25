@@ -1,5 +1,6 @@
 package com.example.breakApp.member.controller
 
+import com.example.breakApp.common.dto.BaseResponse
 import com.example.breakApp.member.dto.MemberDtoRequest
 import com.example.breakApp.member.service.MemberService
 import jakarta.validation.Valid
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/api/member")
-@RestController
+@RestController // 컨트롤러가 HTTP 요청을 처리하고 그 결과를 JSON 형태로 응답하게 만듦
 class MemberController (
     private val memberService: MemberService
 ) {
@@ -17,7 +18,8 @@ class MemberController (
      * 회원가입
      */
     @PostMapping("/signup")
-    fun signUp(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): String {
-        return memberService.signUp(memberDtoRequest)
+    fun signUp(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): BaseResponse<Unit> { // Unit는 비어있는 값
+        val resultMsg: String = memberService.signUp(memberDtoRequest) // 회원가입 완료 메시지 변수에 저장
+        return BaseResponse(message = resultMsg) // 회원가입 완료 메시지 클라이언트에게 전달
     }
 }

@@ -9,7 +9,7 @@ import java.time.LocalDate
 @Table(name = "users")  // 테이블 이름을 users로 설정
 class Member (
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO 대신 IDENTITY 사용
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO(AI) 대신 IDENTITY 사용
     @Column(name = "user_id")  // 테이블의 user_id 필드와 매핑, 기본 키
     var userId: Long? = null, // ?는 not null을 의미
 
