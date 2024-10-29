@@ -1,6 +1,8 @@
 package com.example.breakApp.member.controller
 
+import com.example.breakApp.common.authority.TokenInfo
 import com.example.breakApp.common.dto.BaseResponse
+import com.example.breakApp.member.dto.LoginDto
 import com.example.breakApp.member.dto.MemberDtoRequest
 import com.example.breakApp.member.service.MemberService
 import jakarta.validation.Valid
@@ -21,5 +23,14 @@ class MemberController (
     fun signUp(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): BaseResponse<Unit> { // Unit는 비어있는 값
         val resultMsg: String = memberService.signUp(memberDtoRequest) // 회원가입 완료 메시지 변수에 저장
         return BaseResponse(message = resultMsg) // 회원가입 완료 메시지 클라이언트에게 전달
+    }
+
+    /**
+     * 로그인
+     */
+    @PostMapping("/login")
+    fun login(@RequestBody@Valid loginDto: LoginDto): BaseResponse<TokenInfo>{
+        val tokenInfo = memberService.login(loginDto)
+        return BaseResponse(data = tokenInfo)
     }
 }

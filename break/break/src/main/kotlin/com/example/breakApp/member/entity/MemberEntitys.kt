@@ -1,6 +1,7 @@
 package com.example.breakApp.member.entity
 
 import com.example.breakApp.common.status.Gender
+import com.example.breakApp.common.status.ROLE
 import jakarta.persistence.*
 import java.time.LocalDate
 
@@ -34,4 +35,24 @@ class Member (
 
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDate = LocalDate.now()  // 계정 정보 수정 날짜, 기본값은 현재 날짜
-)
+) {
+    // member(users) 엔티티와 1:n 관계 (한명의 멤버는 여러 권한을 갖을 수 있음)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member")
+    val memberRole: List<MemberRole>? = null
+}
+
+// 멤버의 권한 엔티티
+@Entity
+class MemberRole(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long? = null,
+
+    @Column(nullable = false, length = 30)
+    @Enumerated(EnumType.STRING)
+    val role: ROLE,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(foreignKey = ForeignKey(name = "fk_member_role_member_id"))
+    val member: Member,
+    )
