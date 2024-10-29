@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Pattern
  * 회원가입 시 클라이언트로부터 데이터를 받기 위한 DTO 클래스
  */
 data class MemberDtoRequest(
+    var id: Long?,
 
     // 로그인 ID는 필수 입력 값이며 빈 값일 수 없음
     @field:NotBlank
@@ -93,3 +94,32 @@ data class LoginDto(
     val password: String
         get() = _password!!
 }
+// 정보 조회용 DTO
+data class MemberDtoResponse(
+    val userId: Long,
+    val loginId: String,
+    val userName: String,
+    val email: String,
+    val gender: String,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+// 수정용 DTO
+data class UpdateDtoRequest(
+    var id: Long?,  // 변경 가능한 ID
+
+    @field:Pattern(
+        regexp = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#\$%^&*])[a-zA-Z0-9!@#\$%^&*]{8,20}\$",
+        message = "영문, 숫자, 특수문자를 포함한 8~20자리로 입력해주세요"
+    )
+    val password: String? = null,
+
+    val userName: String? = null,
+
+    @field:Email
+    val email: String? = null,
+
+    @field:ValidEnum(enumClass = Gender::class, message = "MALE 이나 FEMALE 중 하나를 선택해주세요.")
+    val gender: String? = null
+)

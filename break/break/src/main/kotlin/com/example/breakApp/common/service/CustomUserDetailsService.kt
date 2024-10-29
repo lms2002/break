@@ -1,5 +1,6 @@
 package com.example.breakApp.common.service
 
+import com.example.breakApp.common.dto.CustomUser
 import com.example.breakApp.member.entity.Member
 import com.example.breakApp.member.repository.MemberRepository
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -21,7 +22,8 @@ class CustomUserDetailsService(
 
 
     private fun createUserDetails(member: Member): UserDetails =
-        User(
+        CustomUser(
+            member.userId!!,
             member.loginId,
             passwordEncoder.encode(member.password),
             member.memberRole!!.map { SimpleGrantedAuthority("ROLE_${it.role}") }

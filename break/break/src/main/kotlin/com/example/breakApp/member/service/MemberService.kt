@@ -2,11 +2,14 @@ package com.example.breakApp.member.service
 
 import com.example.breakApp.common.authority.JwtTokenProvider
 import com.example.breakApp.common.authority.TokenInfo
+import com.example.breakApp.common.dto.CustomUser
 import com.example.breakApp.common.exception.InvalidInputException
+import com.example.breakApp.common.status.Gender
 import com.example.breakApp.common.status.ROLE
 import com.example.breakApp.member.dto.LoginDto
 import com.example.breakApp.member.dto.MemberDtoRequest
 import com.example.breakApp.member.dto.MemberDtoResponse
+import com.example.breakApp.member.dto.UpdateDtoRequest
 import com.example.breakApp.member.entity.Member
 import com.example.breakApp.member.entity.MemberRole
 import com.example.breakApp.member.repository.MemberRepository
@@ -15,6 +18,7 @@ import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Service
 
@@ -91,20 +95,38 @@ class MemberService(
         return jwtTokenProvider.createToken(user.toAuthentication()).accessToken
     }
 
+    fun getMemberById(userId: Long): Member {
+        return memberRepository.findById(userId)
+            .orElseThrow { RuntimeException("User not found") }
+    }
+
     /**
      * 내 정보 조회
      */
-//    fun searchMyInfo(id: Long): MemberDtoResponse {
-//        val member: Member = memberRepository.findByIdOrNull(id) ?: throw InvalidInputException("id", "회원번호(${id})가 존재하지 않는 유저입니다.")
-//        return member.toDto()
-//    }
+    fun searchMyInfo(id: Long): MemberDtoResponse {
+        val member: Member = memberRepository.findByIdOrNull(id) ?: throw InvalidInputException("id", "회원번호(${id})가 존재하지 않는 유저입니다.")
+        return member.toDto()
+    }
 
     /**
      * 내 정보 수정
      */
-//    fun saveMyInfo(memberDtoRequest: MemberDtoRequest): String {
-//        val member: Member = memberDtoRequest.toEntity()
-//        memberRepository.save(member)
-//        return "수정이 완료되었습니다."
-//    }
+    fun saveMyInfo(updateDtoRequest: UpdateDtoRequest): String {
+        val memberId = updateDtoRequest.id ?: throw InvalidInputException("id", "ID가 입력되지 않았습니다.")
+        val existingMember = memberRepository.findByIdOrNull(memberId)
+            ?: throw InvalidInputException("id", "회원번호(${memberId})가 존재하지 않는 유저입니다.")
+
+        // null이 아닌 경우에만 필드 업데이트
+        updateDtoRequest.password?.let { existingMember.password = it }
+        updateDtoRequest.userName?.let { existingMember.userName = it }
+        updateDtoRequest.email?.let { existingMember.email = it }
+        updateDtoRequest.gender?.let { existingMember.gender = Gender.valueOf(it) }
+
+        // 변경된 정보 저장
+        memberRepository.save(existingMember)
+        return "수정이 완료되었습니다."
+    }
+
+
+
 }

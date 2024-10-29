@@ -38,10 +38,4 @@ class CustomExceptionHandler {
         val errors = mapOf("로그인 실패" to "아이디 혹은 비밀번호를 다시 확인하세요.")
         return ResponseEntity(BaseResponse(ResultCode.ERROR.name, errors, ResultCode.ERROR.msg), HttpStatus.BAD_REQUEST)
     }
-//
-//    @ExceptionHandler(Exception::class)
-//    protected fun defaultException(ex: Exception): ResponseEntity<BaseResponse<Map<String, String>>> {
-//        val errors = mapOf("미처리 에러" to (ex.message ?: "Not Exception Message"))
-//        return ResponseEntity(BaseResponse(ResultCode.ERROR.name, errors, ResultCode.ERROR.msg), HttpStatus.BAD_REQUEST)
-//    }
 }

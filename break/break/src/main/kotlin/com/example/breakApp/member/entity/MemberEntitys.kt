@@ -2,12 +2,15 @@ package com.example.breakApp.member.entity
 
 import com.example.breakApp.common.status.Gender
 import com.example.breakApp.common.status.ROLE
+import com.example.breakApp.member.dto.MemberDtoRequest
+import com.example.breakApp.member.dto.MemberDtoResponse
 import jakarta.persistence.*
 import java.time.LocalDate
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.GrantedAuthority
+import java.time.format.DateTimeFormatter
 
 // users 테이블과 매핑되는 Member 엔티티
 @Entity
@@ -22,7 +25,7 @@ class Member (
     val loginId: String,  // 로그인 ID 필드, 변경 불가능
 
     @Column(nullable = false)
-    val password: String,  // 비밀번호 필드 추가
+    var password: String,  // 비밀번호 필드 추가
 
     @Column(name = "user_name", nullable = false, length = 50)
     var userName: String,  // 사용자 이름 필드, 최대 50자
@@ -46,6 +49,7 @@ class Member (
     // member(users) 엔티티와 1:n 관계 (한명의 멤버는 여러 권한을 갖을 수 있음)
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member")
     val memberRole: List<MemberRole>? = null
+
     /**
      * Member 객체를 Authentication 객체로 변환
      * Member 객체를 Spring Security의 Authentication 객체로 변환하기 위해 멤버 엔티티에 선언
@@ -58,6 +62,11 @@ class Member (
         // Authentication 객체 반환
         return UsernamePasswordAuthenticationToken(this.userId, null, authorities)
     }
+    private fun LocalDate.formatData(): String =
+        this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+
+    fun toDto(): MemberDtoResponse =
+        MemberDtoResponse(userId!! ,loginId, userName, email, gender.desc, createdAt.formatData(), updatedAt.formatData())
 }
 
 // 멤버의 권한 엔티티
