@@ -5,6 +5,10 @@ import com.example.breakApp.common.status.ROLE
 import jakarta.persistence.*
 import java.time.LocalDate
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.GrantedAuthority
+
 // users 테이블과 매핑되는 Member 엔티티
 @Entity
 @Table(name = "users")  // 테이블 이름을 users로 설정
@@ -34,11 +38,26 @@ class Member (
     var createdAt: LocalDate = LocalDate.now(),  // 계정 생성 날짜, 기본값은 현재 날짜
 
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDate = LocalDate.now()  // 계정 정보 수정 날짜, 기본값은 현재 날짜
+    var updatedAt: LocalDate = LocalDate.now(),  // 계정 정보 수정 날짜, 기본값은 현재 날짜
+
+    @Column(name = "refresh_token")  // 리프레시 토큰 필드 매핑 추가
+    var refreshToken: String? = null  // 리프레시 토큰 필드
 ) {
     // member(users) 엔티티와 1:n 관계 (한명의 멤버는 여러 권한을 갖을 수 있음)
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member")
     val memberRole: List<MemberRole>? = null
+    /**
+     * Member 객체를 Authentication 객체로 변환
+     * Member 객체를 Spring Security의 Authentication 객체로 변환하기 위해 멤버 엔티티에 선언
+     */
+    fun toAuthentication(): UsernamePasswordAuthenticationToken {
+        // 권한 리스트 생성
+        val authorities: Collection<GrantedAuthority> = memberRole?.map { SimpleGrantedAuthority(it.role.name) }
+            ?: listOf(SimpleGrantedAuthority("ROLE_MEMBER"))
+
+        // Authentication 객체 반환
+        return UsernamePasswordAuthenticationToken(this.userId, null, authorities)
+    }
 }
 
 // 멤버의 권한 엔티티

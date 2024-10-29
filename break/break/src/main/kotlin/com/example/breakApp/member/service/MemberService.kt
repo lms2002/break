@@ -52,9 +52,43 @@ class MemberService(
         val authenticationToken = UsernamePasswordAuthenticationToken(loginDto.loginId, loginDto.password)
         // 데이터베이스의 멤버 정보와 비교
         val authentication = authenticationManagerBuilder.`object`.authenticate(authenticationToken)
-        
-        // 문제가 없다면 토큰 제공
-        return jwtTokenProvider.createToken(authentication)
+
+        // Access Token과 Refresh Token 생성
+        val accessToken = jwtTokenProvider.createToken(authentication)
+        val refreshToken = jwtTokenProvider.createRefreshToken()
+
+        // 사용자 정보 가져오기
+        val member = memberRepository.findByLoginId(loginDto.loginId)
+            ?: throw InvalidInputException("loginId", "존재하지 않는 사용자입니다.")
+
+        // Refresh Token을 사용자 엔티티에 저장하고 DB에 업데이트
+        member.refreshToken = refreshToken
+        memberRepository.save(member)
+
+        // Access Token과 Refresh Token을 함께 반환
+        return TokenInfo("Bearer", accessToken.accessToken, refreshToken)
+    }
+    /**
+     * Access Token 갱신
+     */
+    fun refreshAccessToken(refreshToken: String): String {
+        // Refresh Token 검증
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw RuntimeException("유효하지 않은 리프레시 토큰입니다.")
+        }
+
+        // Refresh Token에서 사용자 ID 추출
+        val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
+        val user = memberRepository.findByIdOrNull(userId)
+            ?: throw RuntimeException("존재하지 않는 사용자입니다.")
+
+        // 저장된 Refresh Token과 일치하는지 확인
+        if (user.refreshToken != refreshToken) {
+            throw RuntimeException("리프레시 토큰이 일치하지 않습니다.")
+        }
+
+        // 새로운 Access Token 생성 및 반환
+        return jwtTokenProvider.createToken(user.toAuthentication()).accessToken
     }
 
     /**

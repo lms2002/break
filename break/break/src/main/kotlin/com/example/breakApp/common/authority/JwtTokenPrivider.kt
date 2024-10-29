@@ -17,6 +17,9 @@ import kotlin.RuntimeException
 // 토큰 만료 기간 30분
 const val EXPIRATION_MILLISECONDS: Long = 1000 * 60 * 30;
 
+// Refresh Token 만료 기간 (예: 30일)
+const val REFRESH_EXPIRATION_MILLISECONDS: Long = 1000L * 60 * 60 * 24 * 30
+
 @Component
 class JwtTokenProvider {
     @Value("\${jwt.secret}")
@@ -24,29 +27,47 @@ class JwtTokenProvider {
 
     private val key by lazy { Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey)) }
 
-    /**
-     * Token 생성
-     */
+    // 기존 createToken 메서드 (Access Token 생성)
     fun createToken(authentication: Authentication): TokenInfo {
         val authorities: String = authentication
-            // 권한을 , 기준으로 String 정렬
             .authorities
             .joinToString(",", transform = GrantedAuthority::getAuthority)
 
         val now = Date()
         val accessExpiration = Date(now.time + EXPIRATION_MILLISECONDS)
+        val refreshExpiration = Date(now.time + REFRESH_EXPIRATION_MILLISECONDS)
 
-        // Access Token
-        val accessToken = Jwts
-            .builder()
+        // Access Token 생성
+        val accessToken = Jwts.builder()
             .setSubject(authentication.name)
             .claim("auth", authorities)
-            .setIssuedAt(now) // 현재 발행시간
-            .setExpiration(accessExpiration) // 유효 시간
+            .setIssuedAt(now)
+            .setExpiration(accessExpiration)
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
 
-        return TokenInfo("Bearer", accessToken) // accessToken에 담아서 TokenInfo에 전달
+        // Refresh Token 생성
+        val refreshToken = Jwts.builder()
+            .setIssuedAt(now)
+            .setExpiration(refreshExpiration)
+            .signWith(key, SignatureAlgorithm.HS256)
+            .compact()
+
+        // Access Token과 Refresh Token을 모두 포함하여 반환
+        return TokenInfo("Bearer", accessToken, refreshToken)
+    }
+
+    // Refresh Token 생성 메서드 추가
+    fun createRefreshToken(): String {
+        val now = Date()
+        val refreshExpiration = Date(now.time + REFRESH_EXPIRATION_MILLISECONDS)
+
+        // Refresh Token 생성
+        return Jwts.builder()
+            .setIssuedAt(now)
+            .setExpiration(refreshExpiration)
+            .signWith(key, SignatureAlgorithm.HS256)
+            .compact()
     }
 
     /**
@@ -88,6 +109,16 @@ class JwtTokenProvider {
         return false
     }
 
+    /**
+     * 토큰에서 사용자 ID 추출
+     */
+    fun getUserIdFromToken(token: String): Long {
+        val claims = getClaims(token)
+        return claims.subject.toLong()  // subject를 사용자 ID로 저장했다고 가정
+    }
+    /**
+     * JWT 토큰을 파싱하여 토큰의 본문(Claims) 정보를 반환
+     */
     private fun getClaims(token: String): Claims =
         Jwts.parserBuilder()
             .setSigningKey(key)
