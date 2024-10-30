@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface MemberRepository : JpaRepository<Member, Long>{
     // 아이디 중복검사를 위한 함수
     fun findByLoginId(loginId: String): Member?
+    // 이메일을 기준으로 Member 엔티티를 찾는 메서드
+    fun findByEmail(email: String): Member?
 }
 // 회원 가입 시 DB에 권한을 저장 하기 위해 저장소 추가
 interface MemberRoleRepository : JpaRepository<MemberRole, Long>

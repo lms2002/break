@@ -26,6 +26,19 @@ spring:
         show_sql: false
         format_sql: true
         highlight_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: break020425@gmail.com
+    password: fjzt ypbx qtxa fuvw
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+jwt:
+  secret: DadFufN4Oui8Bfv3ScFj6R9fyJ9hD45E6AGFsXgFsRhT4YSdSb
 logging:
   pattern:
     console: "[%d{HH:mm:ss.SSS}][%-5level][%logger.%method:line%line] - %msg%n"
@@ -34,5 +47,3 @@ logging:
       hibernate:
         SQL: debug
         type.descriptor.sql: trace
-jwt:
-  secret: DadFufN4Oui8Bfv3ScFj6R9fyJ9hD45E6AGFsXgFsRhT4YSdSb

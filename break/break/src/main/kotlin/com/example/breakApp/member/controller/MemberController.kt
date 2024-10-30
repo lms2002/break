@@ -8,6 +8,7 @@ import com.example.breakApp.common.dto.CustomUser
 import com.example.breakApp.member.dto.*
 import com.example.breakApp.member.service.MemberService
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -61,9 +62,6 @@ class MemberController (
         val responseMsg: String = memberService.saveMyInfo(updateDtoRequest)
         return BaseResponse(message = responseMsg)
     }
-
-
-
     /**
      * Access Token 갱신
      */
@@ -72,4 +70,39 @@ class MemberController (
         val newAccessToken = memberService.refreshAccessToken(request.refreshToken)
         return ResponseEntity.ok(AccessTokenResponse(newAccessToken))
     }
+    @RestController
+    @RequestMapping("/api")
+    class MemberController(private val memberService: MemberService) {
+
+        @PostMapping("/find-id")
+        fun findIdByEmail(@RequestBody request: FindIdRequest): ResponseEntity<String> {
+            return try {
+                memberService.findIdByEmail(request.email)
+                println("이메일 전송 성공")  // 성공 로그
+                ResponseEntity.ok("아이디가 이메일로 발송되었습니다.")
+            } catch (e: Exception) {
+                println("에러 발생: ${e.message}")  // 에러 메시지 로그
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body("이메일이 등록되어 있지 않습니다.")
+            }
+        }
+        /**
+         * 비밀번호 재설정 요청 엔드포인트.
+         * 클라이언트가 이메일을 전송하면 임시 비밀번호를 발급받을 수 있습니다.
+         */
+        @PostMapping("/reset-password")
+        fun resetPassword(@RequestBody request: ResetPasswordRequest): ResponseEntity<String> {
+            return try {
+                memberService.resetPassword(request.email)
+                ResponseEntity.ok("임시 비밀번호가 이메일로 발송되었습니다.")
+            } catch (e: NoSuchElementException) {
+                ResponseEntity.status(404).body("이메일을 찾을 수 없습니다.")
+            } catch (e: Exception) {
+                ResponseEntity.status(500).body("비밀번호 재설정 중 오류가 발생했습니다.")
+            }
+        }
+
+    }
+    data class ResetPasswordRequest(val email: String)
+    data class FindIdRequest(val email: String)
+
 }
