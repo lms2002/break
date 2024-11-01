@@ -6,14 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ExerciseDto(
     @JsonProperty("name")
-    val name: String,  // 운동 이름
+    val name: String,
 
-    @JsonProperty("description")
-    val description: String?,  // 운동 설명 (optional)
+    @JsonProperty("instructions")
+    val instructions: List<String>?,  // 설명을 여러 줄로 받을 수 있는 리스트로 설정
 
-    @JsonProperty("category")
-    val category: String?,  // 운동 카테고리, nullable로 설정
+    @JsonProperty("bodyPart")
+    val category: String,
 
     @JsonProperty("target")
-    val targetArea: String  // 타겟 부위
+    val targetArea: String
 )
