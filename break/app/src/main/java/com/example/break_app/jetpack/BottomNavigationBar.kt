@@ -3,12 +3,14 @@ package com.example.break_app.jetpack
 import androidx.compose.foundation.Image
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.example.break_app.R
@@ -18,7 +20,7 @@ fun BottomNavigationBar(navController: NavController, selectedItemIndex: Int) {
     // 하단 내비게이션의 각 항목 정보 설정
     val items = listOf("홈", "내 정보", "기록")
 
-    NavigationBar {
+    NavigationBar(containerColor = Color.Black) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
@@ -34,7 +36,7 @@ fun BottomNavigationBar(navController: NavController, selectedItemIndex: Int) {
                         contentDescription = item
                     )
                 },
-                label = { Text(item) },
+                label = { Text(item, color = Color.White) },
                 selected = selectedItemIndex == index,
                 onClick = {
                     if (selectedItemIndex != index) {
@@ -43,8 +45,20 @@ fun BottomNavigationBar(navController: NavController, selectedItemIndex: Int) {
                             1 -> navController.navigate("profileScreen")
                             2 -> navController.navigate("historyScreen")}
                     }
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color.White, // 선택된 아이콘 색상
+                    unselectedIconColor = Color.White, // 선택되지 않은 아이콘 색상
+                    selectedTextColor = Color.White, // 선택된 텍스트 색상
+                    unselectedTextColor = Color.White, // 선택되지 않은 텍스트 색상
+                    indicatorColor = Color(0xFFFFA500)
+                )
             )
         }
     }
 }
+
+/*
+241101_선택되어있는 탭 배경색 추가, 후에 아이콘 추가해서 선택되어있는 아이콘은 색상 변경된 동일 아이콘으로 변경 예정
+
+ */

@@ -1,10 +1,16 @@
 package com.example.break_app.jetpack.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.break_app.jetpack.BottomNavigationBar
@@ -26,71 +32,62 @@ fun MainScreen(navController: NavController) {
             )
         }
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            // 내일 할 일 섹션
-            Text(
-                text = "내일 할 일",
-                style = MaterialTheme.typography.titleMedium
-            )
-            TextField(
-                value = taskInput,
-                onValueChange = { taskInput = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                placeholder = { Text("할 일을 입력하세요") }
-            )
-            Button(
-                onClick = {
-                    if (taskInput.isNotEmpty()) {
-                        tasks = tasks + taskInput
-                        taskInput = ""
-                    }
-                },
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                Text("추가")
-            }
-
-            // 추가된 할 일 목록
-            tasks.forEach { task ->
+            item {
                 Text(
-                    text = task,
+                    text = "내일 할 일",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { /* 클릭 시 동작 추가 */ }
-                        .padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                        .height(90.dp) // 높이 설정
+                        .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp)) // 네모난 모양
+                        .clickable { /* 클릭 시 다이얼로그 표시 */ } // 클릭 시 다이얼로그 표시
+                        .padding(16.dp)
+                ) {
+                    // 여기에 다이얼로그를 띄우는 로직 추가 가능
+                }
             }
 
-            // 내 루틴 섹션
-            Text(
-                text = "내 루틴",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 16.dp)
-            )
+            item {
+                Text(
+                    text = "내 루틴",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
 
             // 루틴 목록 (예시)
-            val routines = listOf("루틴 1", "루틴 2", "루틴 3", "루틴 4")
-            routines.forEach { routine ->
-                Text(
-                    text = routine,
+            val routines = listOf("루틴 1", "루틴 2", "루틴 3", "루틴 4", "루틴 5", "루틴 6")
+
+            items(routines) { routine ->
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(80.dp) // 루틴 박스 높이 설정
                         .padding(vertical = 8.dp)
+                        .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp)) // 박스 모양
                         .clickable { /* 루틴 클릭 시 동작 추가 */ }
                         .padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                    contentAlignment = Alignment.Center // 내용 중앙 정렬
+                ) {
+                    // 여기에 사진 및 이름 표시 가능
+                    Text(text = routine, style = MaterialTheme.typography.bodyLarge)
+                    // 예: Image(painter = painterResource(id = R.drawable.example_image), contentDescription = "루틴 이미지")
+                }
             }
         }
     }
 }
+
+/*
+241101_내일 할 일, 루틴 부분 박스로 변경 완료
+
+ */
