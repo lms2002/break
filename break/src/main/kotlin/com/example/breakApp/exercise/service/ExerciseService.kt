@@ -1,74 +1,64 @@
 package com.example.breakApp.exercise.service
 
-import com.example.breakApp.exercise.repository.ExerciseRepository
-import com.example.breakApp.exercise.repository.TargetBodyPartRepository
-import com.example.breakApp.exercise.repository.EquipmentRepository
 import com.example.breakApp.exercise.dto.ExerciseDto
 import com.example.breakApp.exercise.entity.Exercise
-import com.example.breakApp.exercise.entity.TargetBodyPart
-import com.example.breakApp.exercise.entity.Equipment
+import com.example.breakApp.exercise.repository.ExerciseRepository
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.client.RestTemplate
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpMethod
-import org.springframework.http.ResponseEntity
-import org.springframework.beans.factory.annotation.Value
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import jakarta.annotation.PostConstruct
 
 @Service
 class ExerciseService(
-    private val exerciseRepository: ExerciseRepository,
-    private val targetBodyPartRepository: TargetBodyPartRepository,
-    private val equipmentRepository: EquipmentRepository
+    private val exerciseRepository: ExerciseRepository
 ) {
 
-    @Value("\${rapidapi.key}")
-    private lateinit var apiKey: String
-
     private val apiUrl = "https://exercisedb.p.rapidapi.com/exercises"
+    private val apiKey = "e81c4d92ccmshf84508c82b45c37p134fe6jsn795e29a4eca3" // 실제 API 키를 입력하세요
+    private val client = OkHttpClient()
+    private val objectMapper = jacksonObjectMapper()
 
-    @Transactional  // 트랜잭션 처리
+    @PostConstruct
+    @Transactional
     fun fetchAndSaveExercises() {
-        val restTemplate = RestTemplate()
+        try {
+            // 요청 설정
+            val request = Request.Builder()
+                .url(apiUrl)
+                .get()
+                .addHeader("x-rapidapi-key", apiKey)
+                .addHeader("x-rapidapi-host", "exercisedb.p.rapidapi.com")
+                .build()
 
-        // 헤더 설정 (API Key는 환경변수에서 가져옵니다)
-        val headers = HttpHeaders().apply {
-            set("X-RapidAPI-Host", "exercisedb.p.rapidapi.com")
-            set("X-RapidAPI-Key", apiKey)  // 환경변수에서 API 키 불러오기
-        }
+            // API 호출
+            val response = client.newCall(request).execute()
+            val responseData = response.body?.string()
 
-        val entity = HttpEntity<String>(headers)
+            // 응답 출력
+            println("API 응답: $responseData")
 
-        // API 호출
-        val response: ResponseEntity<Array<ExerciseDto>> = restTemplate.exchange(
-            apiUrl,
-            HttpMethod.GET,
-            entity,
-            Array<ExerciseDto>::class.java
-        )
-
-        response.body?.forEach { dto ->
-
-            // 1. 타겟 부위 저장 또는 기존 데이터 참조
-            val targetBodyPart = targetBodyPartRepository.findByNameIgnoreCase(dto.targetBodyPart)
-                ?: targetBodyPartRepository.save(TargetBodyPart(name = dto.targetBodyPart))
-
-            // 2. 장비 저장 또는 기존 데이터 참조
-            val equipment = equipmentRepository.findByNameIgnoreCase(dto.equipment)
-                ?: equipmentRepository.save(Equipment(name = dto.equipment))
-
-            // 3. 운동 데이터 저장
-            val exercise = Exercise(
-                name = dto.name,
-                targetBodyPart = targetBodyPart,  // 외래 키 연결
-                equipment = equipment,  // 외래 키 연결
-                gifUrl = dto.gifUrl ?: "",  // null 체크
-                category = dto.category,
-                description = dto.description ?: ""  // null 체크
-            )
-
-            exerciseRepository.save(exercise)
+            // JSON 응답을 DTO 리스트로 변환
+            if (!responseData.isNullOrEmpty()) {
+                val exercises: List<ExerciseDto> = objectMapper.readValue(responseData)
+                exercises.forEach { dto ->
+                    // 데이터베이스에 저장하기
+                    if (exerciseRepository.findByName(dto.name) == null) {
+                        val exercise = Exercise(
+                            name = dto.name,
+                            description = dto.description ?: "No description available",
+                            category = dto.category ?: "Uncategorized",
+                            targetArea = dto.targetArea ?: "Unknown"
+                        )
+                        exerciseRepository.save(exercise)
+                        println("Saved exercise: ${dto.name}")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            println("API 호출 중 오류 발생: ${e.message}")
         }
     }
 }
