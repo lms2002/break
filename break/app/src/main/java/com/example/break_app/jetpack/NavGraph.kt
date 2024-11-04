@@ -1,5 +1,7 @@
 package com.example.break_app.jetpack
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -9,7 +11,14 @@ import com.example.break_app.jetpack.subscreen.*
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "mainScreen") {
+    NavHost(
+        navController = navController,
+        startDestination = "mainScreen",
+        enterTransition = { fadeIn(initialAlpha = 1f) },
+        exitTransition = { fadeOut(targetAlpha = 0f) },
+        popEnterTransition = { fadeIn(initialAlpha = 1f) },
+        popExitTransition = { fadeOut(targetAlpha = 0f) }
+    ) {
         composable("mainScreen") { MainScreen(navController) } // 메인 스크린
         composable("profileScreen") { ProfileScreen(navController, 1) }
         composable("historyScreen") { HistoryScreen(navController, 2) }
