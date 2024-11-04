@@ -45,9 +45,16 @@ class MemberService(
             throw InvalidInputException("loginId", "이미 등록된 ID 입니다.")
         }
 
-        member = memberDtoRequest.toEntity()
+        // 비밀번호 해시화
+        val hashedPassword = passwordEncoder.encode(memberDtoRequest.password)
+
+        // Member 엔티티 생성 시 해시화된 비밀번호 사용
+        member = memberDtoRequest.toEntity().apply {
+            password = hashedPassword  // 해시화된 비밀번호 설정
+        }
         memberRepository.save(member)
 
+        // 기본 멤버 권한 설정
         val memberRole: MemberRole = MemberRole(null, ROLE.MEMBER, member)
         memberRoleRepository.save(memberRole)
 
