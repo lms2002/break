@@ -51,7 +51,7 @@ fun BottomNavigationBar(navController: NavController, selectedItemIndex: Int) {
                     unselectedIconColor = Color.White, // 선택되지 않은 아이콘 색상
                     selectedTextColor = Color.White, // 선택된 텍스트 색상
                     unselectedTextColor = Color.White, // 선택되지 않은 텍스트 색상
-                    indicatorColor = Color(0xFFFFA500)
+                    indicatorColor = Color(0xFF8B0000)
                 )
             )
         }
