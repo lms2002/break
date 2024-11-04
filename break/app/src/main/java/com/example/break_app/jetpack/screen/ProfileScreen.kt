@@ -35,7 +35,7 @@ fun ProfileScreen(navController: NavController, selectedItemIndex: Int) {
                         )
                     }
                     // 설정 아이콘
-                    IconButton(onClick = { /* 설정 클릭 시 동작 */ }) {
+                    IconButton(onClick = { navController.navigate("settings") }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_setting), // 설정 아이콘
                             contentDescription = "Settings"
