@@ -9,7 +9,7 @@ import com.example.break_app.jetpack.subscreen.*
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "loginSignup") {
+    NavHost(navController = navController, startDestination = "mainScreen") {
         composable("mainScreen") { MainScreen(navController) } // 메인 스크린
         composable("customExercise") { CustomExerciseScreen(navController) } // 커스텀 운동 화면
         composable("profileScreen") { ProfileScreen(navController, 1) }
