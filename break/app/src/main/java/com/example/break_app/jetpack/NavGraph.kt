@@ -9,7 +9,7 @@ import com.example.break_app.jetpack.subscreen.*
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "mainScreen") {
+    NavHost(navController = navController, startDestination = "loginSignup") {
         composable("mainScreen") { MainScreen(navController) } // 메인 스크린
         composable("customExercise") { CustomExerciseScreen(navController) } // 커스텀 운동 화면
         composable("profileScreen") { ProfileScreen(navController, 1) }
@@ -21,3 +21,7 @@ fun NavGraph(navController: NavHostController) {
         composable("signupTab") { SignUpTab(navController) }
     }
 }
+
+/*
+StartDestination 수정하면 앱 켰을 때 시작화면 변경 가능함
+ */

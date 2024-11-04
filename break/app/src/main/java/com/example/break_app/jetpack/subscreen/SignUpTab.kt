@@ -23,6 +23,14 @@ fun SignUpTab(navController: NavController) {
     var birthDate by remember { mutableStateOf("") }
     var targetWeight by remember { mutableStateOf("") }
 
+    // 공통 Modifier 정의
+    val inputFieldModifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp)
+        .height(32.dp)
+        .background(Color.Gray, shape = MaterialTheme.shapes.small)
+        .padding(16.dp)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -41,17 +49,13 @@ fun SignUpTab(navController: NavController) {
             BasicTextField(
                 value = username,
                 onValueChange = { username = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(16.dp),
-                decorationBox = { innerTextField ->
-                    if (username.isEmpty()) {
-                        Text(text = "아이디 입력", color = Color.LightGray)
-                    }
-                    innerTextField()
-                }
+                modifier = inputFieldModifier // 공통 Modifier 사용
+            )
+            Text(
+                text = "아이디는 영문과 숫자를 포함해야 합니다.",
+                color = Color.LightGray,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.End) // 오른쪽 정렬
             )
 
             // 비밀번호 입력 필드
@@ -59,17 +63,13 @@ fun SignUpTab(navController: NavController) {
             BasicTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(16.dp),
-                decorationBox = { innerTextField ->
-                    if (password.isEmpty()) {
-                        Text(text = "비밀번호 입력", color = Color.LightGray)
-                    }
-                    innerTextField()
-                }
+                modifier = inputFieldModifier // 공통 Modifier 사용
+            )
+            Text(
+                text = "비밀번호는 8자 이상이어야 합니다.",
+                color = Color.LightGray,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.End) // 오른쪽 정렬
             )
 
             // 비밀번호 확인 입력 필드
@@ -77,17 +77,7 @@ fun SignUpTab(navController: NavController) {
             BasicTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(16.dp),
-                decorationBox = { innerTextField ->
-                    if (confirmPassword.isEmpty()) {
-                        Text(text = "비밀번호 확인", color = Color.LightGray)
-                    }
-                    innerTextField()
-                }
+                modifier = inputFieldModifier // 공통 Modifier 사용
             )
 
             // 이름 입력 필드
@@ -95,17 +85,7 @@ fun SignUpTab(navController: NavController) {
             BasicTextField(
                 value = name,
                 onValueChange = { name = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(16.dp),
-                decorationBox = { innerTextField ->
-                    if (name.isEmpty()) {
-                        Text(text = "이름 입력", color = Color.LightGray)
-                    }
-                    innerTextField()
-                }
+                modifier = inputFieldModifier // 공통 Modifier 사용
             )
 
             // 생년월일 입력 필드
@@ -113,17 +93,7 @@ fun SignUpTab(navController: NavController) {
             BasicTextField(
                 value = birthDate,
                 onValueChange = { birthDate = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(16.dp),
-                decorationBox = { innerTextField ->
-                    if (birthDate.isEmpty()) {
-                        Text(text = "YYYY-MM-DD", color = Color.LightGray)
-                    }
-                    innerTextField()
-                }
+                modifier = inputFieldModifier // 공통 Modifier 사용
             )
 
             // 목표 체중 입력 필드
@@ -131,29 +101,25 @@ fun SignUpTab(navController: NavController) {
             BasicTextField(
                 value = targetWeight,
                 onValueChange = { targetWeight = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(16.dp),
-                decorationBox = { innerTextField ->
-                    if (targetWeight.isEmpty()) {
-                        Text(text = "목표 체중 입력", color = Color.LightGray)
-                    }
-                    innerTextField()
-                }
+                modifier = inputFieldModifier // 공통 Modifier 사용
             )
 
             // 확인 버튼
             Button(
                 onClick = {
-                    // 회원가입 로직 추가
+                    /**
+                     * 반드시
+                     * 여기에
+                     * 회원가입
+                     * 코드를
+                     * 만들 것.
+                     */
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)
             ) {
-                Text(text = "확인", color = Color.White)
+                Text(text = "가입하기", color = Color.Black)
             }
         }
     }
