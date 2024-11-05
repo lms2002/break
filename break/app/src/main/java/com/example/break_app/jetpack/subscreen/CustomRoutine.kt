@@ -24,9 +24,8 @@ import com.example.break_app.R
 import androidx.navigation.NavController
 import com.example.break_app.jetpack.tools.BottomNavigationBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomExerciseScreen(navController: NavController) {
+fun CustomRoutine(navController: NavController) {
     Scaffold(
         bottomBar = { BottomNavigationBar(navController, 0) },
         modifier = Modifier.fillMaxSize()
@@ -40,7 +39,7 @@ fun CustomExerciseScreen(navController: NavController) {
             SearchBar(navController) // 검색 바
             CategoryFilters() // 카테고리 필터
             Spacer(modifier = Modifier.height(16.dp)) // 카테고리와 운동 목록 사이의 간격
-            CustomExerciseAddButton(navController) // 커스텀 운동 추가 버튼
+            CustomRoutineAddButton(navController) // 커스텀 운동 추가 버튼
             ExerciseList() // 운동 목록 표시
         }
     }
@@ -131,7 +130,7 @@ fun CategoryFilters() {
 
 
 @Composable
-fun CustomExerciseAddButton(navController: NavController) {
+fun CustomRoutineAddButton(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

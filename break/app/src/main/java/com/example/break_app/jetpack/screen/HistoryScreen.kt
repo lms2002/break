@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -63,9 +62,9 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
 
             // 탭에 따른 내용 표시
             when (selectedTab) {
-                0 -> ExerciseContent(navController) // 운동 탭 내용
-                1 -> PhotoContent() // 사진 탭 내용
-                2 -> BodyContent() // 신체 탭 내용
+                0 -> HistoryExercise(navController) // 운동 탭 내용
+                1 -> HistoryPhoto() // 사진 탭 내용
+                2 -> HistoryBody() // 신체 탭 내용
             }
         }
     }

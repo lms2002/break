@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BodyContent() {
+fun HistoryBody() {
     var weight by remember { mutableStateOf("") }
     var bodyFat by remember { mutableStateOf("") }
     var skeletalMuscle by remember { mutableStateOf("") }

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun PhotoContent() {
+fun HistoryPhoto() {
     val selectedDate = "2024.09.27" // 예시 날짜, 실제 데이터로 설정 가능
     val photos = List(6) { "사진" } // 예시 데이터, 실제 사진 데이터로 변경 가능
 

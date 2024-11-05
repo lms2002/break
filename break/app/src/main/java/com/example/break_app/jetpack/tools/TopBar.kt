@@ -17,7 +17,7 @@ fun TopAppBar(navController: NavController) {
         actions = {
             // 우측 아이콘 추가
             IconButton(onClick = { /* 추가 버튼 클릭 시 동작 */
-                navController.navigate("customExercise") }) {
+                navController.navigate("customRoutine") }) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_add), // + 아이콘
                     contentDescription = "Add"

@@ -14,7 +14,7 @@ import androidx.navigation.NavController
 import com.example.break_app.jetpack.tools.Calendar
 
 @Composable
-fun ExerciseContent(navController: NavController) {
+fun HistoryExercise(navController: NavController) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
