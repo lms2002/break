@@ -128,8 +128,10 @@ class MemberService(
         val existingMember = memberRepository.findByIdOrNull(memberId)
             ?: throw InvalidInputException("id", "회원번호(${memberId})가 존재하지 않는 유저입니다.")
 
-        // null이 아닌 경우에만 필드 업데이트
-        updateDtoRequest.password?.let { existingMember.password = it }
+        // 비밀번호가 있는 경우 해시화하여 업데이트
+        updateDtoRequest.password?.let {
+            existingMember.password = passwordEncoder.encode(it)  // 해시화된 비밀번호로 저장
+        }
         updateDtoRequest.userName?.let { existingMember.userName = it }
         updateDtoRequest.email?.let { existingMember.email = it }
         updateDtoRequest.gender?.let { existingMember.gender = Gender.valueOf(it) }
@@ -138,6 +140,7 @@ class MemberService(
         memberRepository.save(existingMember)
         return "수정이 완료되었습니다."
     }
+
     // 대소문자 구분하며 이메일 찾는 함수
     fun findIdByEmail(email: String) {
         val member = memberRepository.findByEmail(email)
@@ -157,7 +160,7 @@ class MemberService(
     }
 
     /**
-     * 이메일을 기반으로 사용자를 찾고, 임시 비밀번호를 생성하여 이메일로 전송합니다.
+     * 이메일을 기반으로 사용자를 찾고, 임시 비밀번호를 생성하여 이메일로 전송
      */
     fun resetPassword(email: String) {
         // 1. 이메일로 사용자 찾기
@@ -168,12 +171,14 @@ class MemberService(
         val temporaryPassword = generateTemporaryPassword()
 
         // 3. 임시 비밀번호를 해시하여 사용자 정보에 저장
-        member.password = temporaryPassword
+        val hashedPassword = passwordEncoder.encode(temporaryPassword)  // 해시화된 비밀번호 생성
+        member.password = hashedPassword  // 해시화된 비밀번호로 저장
         memberRepository.save(member)
 
         // 4. 임시 비밀번호 이메일 전송
         sendEmailWithTemporaryPassword(email, temporaryPassword)
     }
+
 
     /**
      * 임시 비밀번호를 생성하는 메서드. 10자리의 랜덤 문자열을 반환합니다.

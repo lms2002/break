@@ -4,7 +4,7 @@ import com.example.breakApp.common.service.CustomUserDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -22,6 +22,7 @@ class SecurityConfig(
     private val jwtTokenProvider: JwtTokenProvider,
     private val customUserDetailsService: CustomUserDetailsService
 ) {
+
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -41,8 +42,11 @@ class SecurityConfig(
     }
 
     @Bean
-    fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager {
-        return authenticationConfiguration.authenticationManager
+    fun authenticationManagerBean(http: HttpSecurity): AuthenticationManager {
+        val authBuilder = http.getSharedObject(AuthenticationManagerBuilder::class.java)
+        authBuilder.userDetailsService(customUserDetailsService)
+            .passwordEncoder(passwordEncoder())
+        return authBuilder.build()
     }
 
     // 비밀번호 암호화에 사용할 PasswordEncoder 빈 설정
