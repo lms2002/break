@@ -6,12 +6,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.break_app.R
 import com.example.break_app.jetpack.tools.BottomNavigationBar
-import com.example.break_app.jetpack.tools.Calendar
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import com.example.break_app.jetpack.subscreen.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,15 +42,20 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
                 .padding(innerPadding)
         ) {
             // 탭 레이아웃
-            TabRow(selectedTabIndex = selectedTab) {
+            TabRow(
+                selectedTabIndex = selectedTab,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                        color = Color(0xFF8B0000) // 테마 색상
+                    )
+                }
+            ) {
                 val tabs = listOf("운동", "사진", "신체")
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
-                        onClick = {
-                            selectedTab = index
-                            // 필요한 동작 추가
-                        },
+                        onClick = { selectedTab = index },
                         text = { Text(title) }
                     )
                 }
@@ -57,7 +63,7 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
 
             // 탭에 따른 내용 표시
             when (selectedTab) {
-                0 -> ExerciseContent() // 운동 탭 내용
+                0 -> ExerciseContent(navController) // 운동 탭 내용
                 1 -> PhotoContent() // 사진 탭 내용
                 2 -> BodyContent() // 신체 탭 내용
             }
@@ -65,39 +71,4 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
     }
 }
 
-@Composable
-fun ExerciseContent() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Text(text = "운동 기록", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
 
-        // Calendar 컴포넌트 호출
-        Calendar(onDateSelected = { year, month, day ->
-            // 날짜 선택 시 동작 정의
-            println("선택된 날짜: $year/$month/$day")
-        })
-    }
-}
-
-@Composable
-fun PhotoContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "사진 탭 내용", style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-@Composable
-fun BodyContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "신체 탭 내용", style = MaterialTheme.typography.bodyLarge)
-    }
-}

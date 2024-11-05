@@ -92,7 +92,7 @@ fun DateGrid(year: Int, month: Int, onDateSelected: (year: Int, month: Int, day:
     val daysInMonth = getDaysInMonth(year, month)
     val calendar = Calendar.getInstance()
     calendar.set(year, month, 1)
-    val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1 // 첫 날의 요일 인덱스
+    val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1 // 첫 날의 요일 인덱스 (0부터 시작)
     val weekDays = listOf("일", "월", "화", "수", "목", "금", "토")
 
     // 오늘 날짜 확인
@@ -113,19 +113,20 @@ fun DateGrid(year: Int, month: Int, onDateSelected: (year: Int, month: Int, day:
     Spacer(modifier = Modifier.height(8.dp))
 
     // 날짜 그리드
-    val dates = (1..daysInMonth).toList()
-    var dayCounter = 0 // 현재 그릴 날짜 카운터
+    var dayCounter = 1 // 날짜는 1일부터 시작
 
-    for (week in 0..5) { // 최대 6줄 (주) 필요
+    // 각 주를 순회
+    for (week in 0 until 6) { // 최대 6줄 (주) 필요
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            for (dayIndex in 0..6) {
+            // 각 주의 요일을 순회
+            for (dayIndex in 0 until 7) {
                 val day = if (week == 0 && dayIndex < firstDayOfWeek) {
-                    null // 첫 주의 첫 요일 전에는 빈 칸
-                } else if (dayCounter < daysInMonth) {
-                    dayCounter++ // 실제 날짜 증가
+                    null // 첫 주의 빈 칸
+                } else if (dayCounter <= daysInMonth) {
+                    dayCounter++ // 날짜를 증가시키고 표시
                 } else {
                     null // 마지막 날짜 이후 빈 칸
                 }
@@ -147,8 +148,10 @@ fun DateGrid(year: Int, month: Int, onDateSelected: (year: Int, month: Int, day:
                 }
             }
         }
+        if (dayCounter > daysInMonth) break // 모든 날짜가 표시되면 종료
     }
 }
+
 
 
 
