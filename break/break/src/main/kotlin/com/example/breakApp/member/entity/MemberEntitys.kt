@@ -1,20 +1,15 @@
 package com.example.breakApp.member.entity
 
 import com.example.breakApp.common.status.Gender
-import com.example.breakApp.common.status.ROLE
 import com.example.breakApp.member.dto.MemberDtoResponse
 import java.time.LocalDate
-
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.GrantedAuthority
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 // users 테이블과 매핑되는 Member 엔티티
 @Entity
-@Table(name = "users")  // 테이블 이름을 users로 설정
+@Table(name = "users")
 class Member (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO(AI) 대신 IDENTITY 사용
@@ -50,22 +45,6 @@ class Member (
     @Column(name = "is_verified", nullable = false)
     var isVerified: Boolean = false
 ) {
-    // member(users) 엔티티와 1:n 관계 (한명의 멤버는 여러 권한을 갖을 수 있음)
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member")
-    val memberRole: List<MemberRole>? = null
-
-    /**
-     * Member 객체를 Authentication 객체로 변환
-     * Member 객체를 Spring Security의 Authentication 객체로 변환하기 위해 멤버 엔티티에 선언
-     */
-    fun toAuthentication(): UsernamePasswordAuthenticationToken {
-        // 권한 리스트 생성
-        val authorities: Collection<GrantedAuthority> = memberRole?.map { SimpleGrantedAuthority(it.role.name) }
-            ?: listOf(SimpleGrantedAuthority("ROLE_MEMBER"))
-
-        // Authentication 객체 반환
-        return UsernamePasswordAuthenticationToken(this.userId, null, authorities)
-    }
     private fun LocalDate.formatData(): String =
         this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
@@ -73,21 +52,7 @@ class Member (
         MemberDtoResponse(userId!! ,loginId, userName, email, gender.desc, createdAt.formatData(), updatedAt.formatData())
 }
 
-// 멤버의 권한 엔티티
-@Entity
-class MemberRole(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
 
-    @Column(nullable = false, length = 30)
-    @Enumerated(EnumType.STRING)
-    val role: ROLE,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(foreignKey = ForeignKey(name = "fk_member_role_member_id"))
-    val member: Member,
-    )
 @Entity
 class VerificationToken(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

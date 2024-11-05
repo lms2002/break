@@ -31,7 +31,7 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers("/api/member/signup", "/api/member/login", "/api/member/verify-email").anonymous()
-                    .requestMatchers("/api/member/**").hasRole("MEMBER")
+                    .requestMatchers("/api/member/**").authenticated()  // 인증된 사용자만 접근 가능
                     .anyRequest().permitAll()
             }
             .addFilterBefore(

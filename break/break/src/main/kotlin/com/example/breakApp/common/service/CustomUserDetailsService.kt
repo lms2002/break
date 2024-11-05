@@ -25,6 +25,6 @@ class CustomUserDetailsService(
             member.userId!!,
             member.loginId,
             member.password,  // 해시된 비밀번호를 그대로 사용
-            member.memberRole!!.map { SimpleGrantedAuthority("ROLE_${it.role}") }
+            emptyList()  // 권한이 없으므로 빈 리스트 전달
         )
 }

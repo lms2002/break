@@ -4,13 +4,12 @@ import com.example.breakApp.common.authority.JwtTokenProvider
 import com.example.breakApp.common.authority.TokenInfo
 import com.example.breakApp.common.exception.InvalidInputException
 import com.example.breakApp.common.status.Gender
-import com.example.breakApp.common.status.ROLE
+import org.springframework.security.core.Authentication
 import com.example.breakApp.member.dto.LoginDto
 import com.example.breakApp.member.dto.MemberDtoRequest
 import com.example.breakApp.member.dto.MemberDtoResponse
 import com.example.breakApp.member.dto.UpdateDtoRequest
 import com.example.breakApp.member.entity.Member
-import com.example.breakApp.member.entity.MemberRole
 import com.example.breakApp.member.entity.PendingMember
 import com.example.breakApp.member.entity.VerificationToken
 import com.example.breakApp.member.repository.*
@@ -28,7 +27,6 @@ import java.time.LocalDateTime
 @Service
 class MemberService(
     private val memberRepository: MemberRepository,
-    private val memberRoleRepository: MemberRoleRepository,
     private val authenticationManagerBuilder: AuthenticationManagerBuilder,
     private val jwtTokenProvider: JwtTokenProvider,
     private val emailSender: JavaMailSender,
@@ -72,7 +70,7 @@ class MemberService(
         // 5. 인증 코드 이메일 전송
         sendVerificationCodeEmail(memberDtoRequest.email, verificationCode)
 
-        return "회원가입 요청이 완료되었습니다. 이메일로 전송된 인증 코드를 확인해주세요."
+        return "이메일로 인증 코드가 발송되었습니다."
     }
     /**
      * 이메일로 6자리 인증 코드를 전송하는 메서드
@@ -161,10 +159,6 @@ class MemberService(
         )
         memberRepository.save(member)
 
-        // 기본 권한 설정 (선택 사항)
-        val memberRole = MemberRole(null, ROLE.MEMBER, member)
-        memberRoleRepository.save(memberRole)
-
         // 인증 후 사용된 토큰과 `PendingMember` 데이터 삭제
         tokenRepository.delete(verificationToken)
         pendingMemberRepository.delete(pendingMember)
@@ -215,9 +209,18 @@ class MemberService(
             throw RuntimeException("리프레시 토큰이 일치하지 않습니다.")
         }
 
+        // userId 기반으로 Authentication 객체 생성
+        val authentication = createAuthentication(userId)
+
         // 새로운 Access Token 생성 및 반환
-        return jwtTokenProvider.createToken(user.toAuthentication()).accessToken
+        return jwtTokenProvider.createToken(authentication).accessToken
     }
+    // userId를 기반으로 Authentication 객체 생성
+    fun createAuthentication(userId: Long): Authentication {
+        return UsernamePasswordAuthenticationToken(userId, null, emptyList()) // 권한 리스트는 빈 리스트 사용
+    }
+
+
 
     fun getMemberById(userId: Long): Member {
         return memberRepository.findById(userId)
