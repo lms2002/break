@@ -9,11 +9,11 @@ data class ExerciseDto(
     val name: String,
 
     @JsonProperty("instructions")
-    val instructions: List<String>?,  // 설명을 여러 줄로 받을 수 있는 리스트로 설정
+    val instructions: List<String>? = null,
 
-    @JsonProperty("bodyPart")
-    val category: String,
+    @JsonProperty("bodyPart")  // 실제 API의 필드 이름이 맞는지 확인
+    val category: String = "General",
 
-    @JsonProperty("target")
-    val targetArea: String
+    @JsonProperty("target")  // 실제 API의 필드 이름이 맞는지 확인
+    val targetArea: String = "Full Body"
 )
