@@ -2,14 +2,14 @@ package com.example.breakApp.member.entity
 
 import com.example.breakApp.common.status.Gender
 import com.example.breakApp.common.status.ROLE
-import com.example.breakApp.member.dto.MemberDtoRequest
 import com.example.breakApp.member.dto.MemberDtoResponse
-import jakarta.persistence.*
 import java.time.LocalDate
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.GrantedAuthority
+import jakarta.persistence.*
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 // users 테이블과 매핑되는 Member 엔티티
@@ -44,7 +44,11 @@ class Member (
     var updatedAt: LocalDate = LocalDate.now(),  // 계정 정보 수정 날짜, 기본값은 현재 날짜
 
     @Column(name = "refresh_token")  // 리프레시 토큰 필드 매핑 추가
-    var refreshToken: String? = null  // 리프레시 토큰 필드
+    var refreshToken: String? = null,  // 리프레시 토큰 필드
+
+    // 이메일 인증 여부를 나타내는 필드, 기본값은 false
+    @Column(name = "is_verified", nullable = false)
+    var isVerified: Boolean = false
 ) {
     // member(users) 엔티티와 1:n 관계 (한명의 멤버는 여러 권한을 갖을 수 있음)
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member")
@@ -84,3 +88,44 @@ class MemberRole(
     @JoinColumn(foreignKey = ForeignKey(name = "fk_member_role_member_id"))
     val member: Member,
     )
+@Entity
+class VerificationToken(
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null,
+
+    @Column(nullable = false, unique = true, length = 6)
+    val token: String,
+
+    @OneToOne
+    @JoinColumn(name = "pending_member_id", referencedColumnName = "id")
+    val pendingMember: PendingMember,
+
+    @Column(nullable = false)
+    val expiryDate: LocalDateTime
+) {
+    // 만료 여부 확인 메서드
+    fun isExpired(): Boolean {
+        return LocalDateTime.now().isAfter(expiryDate)
+    }
+}
+@Entity
+class PendingMember(
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null,
+
+    @Column(nullable = false, unique = true)
+    val loginId: String,
+
+    @Column(nullable = false)
+    val password: String,
+
+    @Column(nullable = false)
+    val userName: String,
+
+    @Column(nullable = false, unique = true)
+    val email: String,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    val gender: Gender
+)

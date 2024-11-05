@@ -9,21 +9,15 @@ import com.example.breakApp.member.dto.*
 import com.example.breakApp.member.service.MemberService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import org.springframework.http.ResponseEntity               // ResponseEntity import 추가
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/member")
 @RestController
 class MemberController (
     private val memberService: MemberService,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
 ) {
     /**
      * 회원가입
@@ -31,6 +25,14 @@ class MemberController (
     @PostMapping("/signup")
     fun signUp(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): BaseResponse<Unit> {
         val resultMsg: String = memberService.signUp(memberDtoRequest)
+        return BaseResponse(message = resultMsg)
+    }
+    /**
+     * 이메일 인증을 처리하는 메서드
+     */
+    @GetMapping("/verify-email")
+    fun verifyEmail(@RequestParam("email") email: String, @RequestParam("token") token: String): BaseResponse<Unit> {
+        val resultMsg = memberService.verifyEmail(email, token)
         return BaseResponse(message = resultMsg)
     }
 
@@ -104,5 +106,4 @@ class MemberController (
     }
     data class ResetPasswordRequest(val email: String)
     data class FindIdRequest(val email: String)
-
 }

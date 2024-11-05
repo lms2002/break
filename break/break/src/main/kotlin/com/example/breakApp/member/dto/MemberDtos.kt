@@ -123,3 +123,9 @@ data class UpdateDtoRequest(
     @field:ValidEnum(enumClass = Gender::class, message = "MALE 이나 FEMALE 중 하나를 선택해주세요.")
     val gender: String? = null
 )
+
+// 이메일 인증 코드 확인용 DTO
+data class VerifyCodeRequest(
+    val email: String,           // 인증할 사용자 이메일
+    val verificationCode: String  // 6자리 인증 코드
+)
