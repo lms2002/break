@@ -3,6 +3,8 @@ package com.example.break_app.jetpack.subscreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
@@ -39,8 +41,8 @@ fun CustomRoutine(navController: NavController) {
             SearchBar(navController) // 검색 바
             CategoryFilters() // 카테고리 필터
             Spacer(modifier = Modifier.height(16.dp)) // 카테고리와 운동 목록 사이의 간격
-            CustomRoutineAddButton(navController) // 커스텀 운동 추가 버튼
             ExerciseList() // 운동 목록 표시
+            CustomRoutineAddButton(navController) // 커스텀 운동 추가 버튼
         }
     }
 }
@@ -162,15 +164,19 @@ fun ExerciseList() {
         "와이드 그립 랫 풀 다운 - 등, 어깨",
         "바벨 플랫 벤치 프레스 - 가슴, 삼두",
         "덤벨 바이셉 컬 - 이두, 전완",
-        "이지바 바이셉 컬 - 이두, 전완"
+        "이지바 바이셉 컬 - 이두, 전완",
+        // 여기에 더 많은 운동 항목 추가 가능
     )
 
-    Column(modifier = Modifier.padding(8.dp)) {
-        exercises.forEach { exercise ->
+    var selectedExercise by remember { mutableStateOf<String?>(null) }
+
+    LazyColumn(modifier = Modifier.padding(8.dp)) {
+        items(exercises) { exercise ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 8.dp)
+                    .clickable { selectedExercise = if (selectedExercise == exercise) null else exercise }, // 클릭 시 선택된 운동 변경
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -183,12 +189,25 @@ fun ExerciseList() {
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = exercise,
-                    style = TextStyle(fontSize = 16.sp, color = Color.White)
+                    style = TextStyle(fontSize = 16.sp, color = Color.White),
+                    modifier = Modifier.weight(1f)
                 )
+
+                // '+' 버튼은 선택된 운동일 때만 표시
+                if (selectedExercise == exercise) {
+                    IconButton(onClick = { /* 루틴에 추가하는 로직 구현 */ }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_add),
+                            contentDescription = "Add to Routine",
+                            tint = Color(0xFF8B0000)
+                        )
+                    }
+                }
             }
         }
     }
 }
+
 
 /**
  * 11/4 필터 선택 시 주황색으로 색상 변경 효과 적용, 이전 버튼 구현
