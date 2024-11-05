@@ -1,4 +1,4 @@
-package com.example.break_app.jetpack
+package com.example.break_app.jetpack.tools
 
 import androidx.compose.foundation.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,7 +29,7 @@ fun TopAppBar(navController: NavController) {
                     contentDescription = "Notifications"
                 )
             }
-            IconButton(onClick = { /* 설정 버튼 클릭 시 동작 */ }) {
+            IconButton(onClick = { navController.navigate("settings") }) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_setting), // 설정 아이콘
                     contentDescription = "Settings"

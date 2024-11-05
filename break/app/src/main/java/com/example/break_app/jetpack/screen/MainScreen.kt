@@ -13,18 +13,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.break_app.jetpack.BottomNavigationBar
+import com.example.break_app.jetpack.tools.BottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController) {
     var selectedItem by remember { mutableStateOf(0) }
-    var taskInput by remember { mutableStateOf("") }
-    var tasks by remember { mutableStateOf(listOf<String>()) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { com.example.break_app.jetpack.TopAppBar(navController) },
+        topBar = { com.example.break_app.jetpack.tools.TopAppBar(navController) },
         bottomBar = {
             BottomNavigationBar(
                 navController = navController,

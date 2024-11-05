@@ -67,7 +67,7 @@ fun PlanSection(navController: NavController) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("요일 선택", color = Color.Black)
+                Text("요일 선택", color = Color.White)
             }
 
             // 선택된 날짜의 시간 선택
@@ -78,7 +78,7 @@ fun PlanSection(navController: NavController) {
                     .background(Color.DarkGray, shape = RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("선택 된 날짜의 시간 선택", color = Color.Black)
+                Text("선택 된 날짜의 시간 선택", color = Color.White)
             }
 
             // 일정 가져오기 버튼

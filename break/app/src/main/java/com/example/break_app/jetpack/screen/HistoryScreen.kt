@@ -7,9 +7,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.break_app.R
-import com.example.break_app.jetpack.BottomNavigationBar
+import com.example.break_app.jetpack.tools.BottomNavigationBar
+import com.example.break_app.jetpack.tools.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,14 +65,20 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
     }
 }
 
-
 @Composable
 fun ExerciseContent() {
-    Box(
+    Column(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        Text(text = "운동 탭 내용", style = MaterialTheme.typography.bodyLarge)
+        Text(text = "운동 기록", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
+
+        // Calendar 컴포넌트 호출
+        Calendar(onDateSelected = { year, month, day ->
+            // 날짜 선택 시 동작 정의
+            println("선택된 날짜: $year/$month/$day")
+        })
     }
 }
 

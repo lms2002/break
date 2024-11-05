@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import com.example.break_app.R
 import androidx.navigation.NavController
-import com.example.break_app.jetpack.BottomNavigationBar
+import com.example.break_app.jetpack.tools.BottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
