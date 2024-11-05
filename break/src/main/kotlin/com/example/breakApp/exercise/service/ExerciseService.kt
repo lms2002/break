@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 class ExerciseService(
     private val exerciseRepository: ExerciseRepository
 ) {
-    private val apiUrl = "https://exercisedb.p.rapidapi.com/exercises" // 전체 데이터를 가져오기 위한 기본 URL
+    private val apiUrl = "https://exercisedb.p.rapidapi.com/exercises?offset=0&limit=1350" // 전체 데이터를 가져오기 위한 기본 URL
     private val apiKey = "e81c4d92ccmshf84508c82b45c37p134fe6jsn795e29a4eca3"  // API 키를 본인의 키로 교체
     private val client = OkHttpClient()
     private val objectMapper = jacksonObjectMapper()
