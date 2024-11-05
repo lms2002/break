@@ -70,7 +70,7 @@ fun ProfileScreen(navController: NavController, selectedItemIndex: Int) {
             }
 
             // 메뉴 항목
-            val menuItems = listOf("내 루틴", "모든 메모", "친구", "친구 초대")
+            val menuItems = listOf("모든 메모", "친구", "친구 초대")
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -81,7 +81,11 @@ fun ProfileScreen(navController: NavController, selectedItemIndex: Int) {
                         text = item,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { /* 클릭 시 동작 추가 */ }
+                            .clickable {
+                                /**
+                                 * 기능 넣기
+                                 */
+                            }
                             .padding(vertical = 8.dp),
                         style = MaterialTheme.typography.bodyLarge
                     )

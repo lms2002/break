@@ -34,6 +34,10 @@ fun NavGraph(navController: NavHostController) {
             val selectedDate = backStackEntry.arguments?.getString("selectedDate")
             DailyMemoScreen(navController = navController, selectedDate = selectedDate ?: "")
         }
+        composable("routineManagement/{routineName}") { backStackEntry ->
+            val routineName = backStackEntry.arguments?.getString("routineName") ?: "루틴 없음"
+            RoutineManagement(navController = navController, routineName = routineName)
+        }
     }
 }
 

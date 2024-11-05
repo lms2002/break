@@ -42,7 +42,6 @@ fun CustomRoutine(navController: NavController) {
             CategoryFilters() // 카테고리 필터
             Spacer(modifier = Modifier.height(16.dp)) // 카테고리와 운동 목록 사이의 간격
             ExerciseList() // 운동 목록 표시
-            CustomRoutineAddButton(navController) // 커스텀 운동 추가 버튼
         }
     }
 }
@@ -89,7 +88,7 @@ fun SearchBar(navController: NavController) {
 
 @Composable
 fun CategoryFilters() {
-    val categories = listOf("전체", "가슴", "등", "어깨", "삼두", "이두", "하체")
+    val categories = listOf("전체", "가슴", "등", "어깨", "삼두", "이두", "하체", "전신")
     var selectedCategory by remember { mutableStateOf("전체") }
 
     Column(
@@ -131,30 +130,6 @@ fun CategoryFilters() {
 }
 
 
-@Composable
-fun CustomRoutineAddButton(navController: NavController) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_add),
-            contentDescription = "Add Custom Exercise",
-            tint = Color(0xFF8B0000),
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "커스텀 운동 추가",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
-        )
-    }
-}
 
 @Composable
 fun ExerciseList() {
@@ -195,7 +170,11 @@ fun ExerciseList() {
 
                 // '+' 버튼은 선택된 운동일 때만 표시
                 if (selectedExercise == exercise) {
-                    IconButton(onClick = { /* 루틴에 추가하는 로직 구현 */ }) {
+                    IconButton(onClick = {
+                        /**
+                         * + 버튼 누르고 루틴 선택해서 추가하도록 하면 될 듯
+                         */
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_add),
                             contentDescription = "Add to Routine",

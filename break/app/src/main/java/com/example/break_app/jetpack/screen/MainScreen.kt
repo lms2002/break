@@ -63,22 +63,22 @@ fun MainScreen(navController: NavController) {
             }
 
             // 루틴 목록 (예시)
-            val routines = listOf("루틴 1", "루틴 2", "루틴 3", "루틴 4", "루틴 5", "루틴 6")
+            val routines = listOf("루틴 1", "루틴 2", "루틴 3", "루틴 4")
 
             items(routines) { routine ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp) // 루틴 박스 높이 설정
+                        .height(80.dp)
                         .padding(vertical = 8.dp)
-                        .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp)) // 박스 모양
-                        .clickable { /* 루틴 클릭 시 동작 추가 */ }
+                        .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp))
+                        .clickable {
+                            navController.navigate("routineManagement/$routine")
+                        }
                         .padding(16.dp),
-                    contentAlignment = Alignment.Center // 내용 중앙 정렬
+                    contentAlignment = Alignment.Center
                 ) {
-                    // 여기에 사진 및 이름 표시 가능
                     Text(text = routine, style = MaterialTheme.typography.bodyLarge)
-                    // 예: Image(painter = painterResource(id = R.drawable.example_image), contentDescription = "루틴 이미지")
                 }
             }
         }
