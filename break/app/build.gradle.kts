@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.break_app"
+    namespace = "com.example.breakApp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.break_app"
+        applicationId = "com.example.breakApp"
         minSdk = 25
         targetSdk = 34
         versionCode = 1
