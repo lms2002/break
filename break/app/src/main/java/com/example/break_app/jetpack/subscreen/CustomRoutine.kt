@@ -88,8 +88,8 @@ fun SearchBar(navController: NavController) {
 
 @Composable
 fun CategoryFilters() {
-    val categories = listOf("전체", "가슴", "등", "어깨", "삼두", "이두", "하체", "전신")
-    var selectedCategory by remember { mutableStateOf("전체") }
+    val categories = listOf("가슴", "등", "어깨", "유산소", "삼두", "이두", "하체", "전신")
+    var selectedCategory by remember { mutableStateOf("가슴") }
 
     Column(
         modifier = Modifier

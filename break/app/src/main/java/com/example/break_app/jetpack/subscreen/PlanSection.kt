@@ -117,7 +117,7 @@ fun PlanSection(navController: NavController) {
 
                 // 루틴 추가 버튼
                 Button(
-                    onClick = { navController.navigate("customExercise") },
+                    onClick = { navController.navigate("customRoutine") },
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
