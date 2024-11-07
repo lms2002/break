@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "break_app"
+rootProject.name = "breakApp"
 include(":app")
  
