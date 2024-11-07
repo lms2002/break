@@ -1,0 +1,78 @@
+-- 1. 데이터베이스 생성
+CREATE DATABASE break;
+
+-- 2. 데이터베이스 사용
+USE break;
+
+-- 3. 사용자(User) 테이블 (성별 속성 추가)
+CREATE TABLE users (
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 시스템에서 자동 증가하는 고유 ID
+    login_id VARCHAR(50) NOT NULL UNIQUE,       -- 사용자가 입력하는 고유한 로그인 아이디
+    user_name VARCHAR(20) NOT NULL,             -- 사용자의 이름
+    email VARCHAR(100) NOT NULL UNIQUE,         -- 고유한 이메일 주소
+    password VARCHAR(255) NOT NULL,             -- 해시화된 비밀번호
+    gender VARCHAR(10) NOT NULL,                -- 성별 (Male, Female, Other 등)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 계정 생성 시간 자동 기록
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- 수정 시간 자동 기록
+);
+
+-- 4. 운동(Exercise) 테이블 (category와 targetArea를 ENUM 대신 VARCHAR로 설정)
+CREATE TABLE Exercise (
+    exerciseId INT AUTO_INCREMENT PRIMARY KEY,  -- 운동 ID
+    name VARCHAR(50) NOT NULL,  -- 운동 이름
+    description TEXT,  -- 운동 설명
+    category VARCHAR(50) NOT NULL,  -- 카테고리 (API로 받아오는 값)
+    targetArea VARCHAR(50) NOT NULL  -- 타겟 부위 (API로 받아오는 값)
+);
+
+-- 5. 루틴(Routine) 테이블
+CREATE TABLE Routine (
+    routineId INT AUTO_INCREMENT PRIMARY KEY,  -- 루틴 ID
+    userId BIGINT,  -- 외래 키로 User 테이블의 user_id 참조
+    name VARCHAR(50) NOT NULL,  -- 루틴 이름
+    CONSTRAINT fk_user_routine FOREIGN KEY (userId) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- 6. 루틴-운동 관리자(RoutineExerciseManager) 테이블 (다대다 관계를 관리)
+CREATE TABLE RoutineExerciseManager (
+    routineExerciseManagerId INT AUTO_INCREMENT PRIMARY KEY,  -- 고유 ID
+    routineId INT,  -- 외래 키로 Routine 테이블의 routineId 참조
+    exerciseId INT,  -- Exercise 테이블의 exerciseId와 연결
+    CONSTRAINT fk_routine FOREIGN KEY (routineId) REFERENCES Routine(routineId) ON DELETE CASCADE,
+    CONSTRAINT fk_exercise FOREIGN KEY (exerciseId) REFERENCES Exercise(exerciseId) ON DELETE CASCADE
+);
+
+-- 7. 인바디(InBody) 테이블
+CREATE TABLE inbody (
+    in_body_id INT AUTO_INCREMENT PRIMARY KEY,  -- 인바디 ID, 기본 키
+    user_id BIGINT,  -- 외래 키로 User 테이블의 user_id 참조
+    measurement_date DATE,  -- 측정 날짜 (NULL 허용)
+    weight FLOAT,  -- 체중 (NULL 허용)
+    body_fat_percentage FLOAT,  -- 체지방률 (NULL 허용)
+    muscle_mass FLOAT,  -- 근육량 (NULL 허용)
+    bmi FLOAT,  -- BMI (NULL 허용)
+    visceral_fat_level FLOAT,  -- 내장 지방 수치 (NULL 허용)
+    basal_metabolic_rate FLOAT,  -- 기초 대사량 (NULL 허용)
+    CONSTRAINT fk_user_inbody FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- 8. 운동 로그(WorkoutLog) 테이블
+CREATE TABLE WorkoutLog (
+    logId INT AUTO_INCREMENT PRIMARY KEY,  -- 로그 ID, 기본 키
+    exerciseId INT,  -- 외래 키로 Exercise 테이블의 exerciseId 참조
+    userId BIGINT,  -- 외래 키로 User 테이블의 user_id 참조
+    startTime DATETIME NOT NULL,  -- 운동 시작 시간
+    endTime DATETIME NOT NULL,  -- 운동 종료 시간
+    duration INT NOT NULL,  -- 운동 지속 시간 (분 단위)
+    CONSTRAINT fk_exercise_workout FOREIGN KEY (exerciseId) REFERENCES Exercise(exerciseId) ON DELETE CASCADE,
+    CONSTRAINT fk_user_workout FOREIGN KEY (userId) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- 9. 알림(Notification) 테이블
+CREATE TABLE Notification (
+    notificationId INT AUTO_INCREMENT PRIMARY KEY,  -- 알림 ID, 기본 키
+    userId BIGINT,  -- 외래 키로 User 테이블의 user_id 참조
+    message TEXT NOT NULL,  -- 알림 메시지
+    dateTime DATETIME NOT NULL,  -- 알림 시간
+    CONSTRAINT fk_user_notification FOREIGN KEY (userId) REFERENCES users(user_id) ON DELETE CASCADE
+);
