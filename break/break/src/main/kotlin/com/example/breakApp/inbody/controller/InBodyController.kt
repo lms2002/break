@@ -23,7 +23,10 @@ class InBodyController(private val inBodyService: InBodyService) {
                 measurementDate = createInBodyDto.measurementDate, // DTO에서 측정 날짜 설정
                 weight = createInBodyDto.weight, // DTO에서 체중 설정
                 bodyFatPercentage = createInBodyDto.bodyFatPercentage, // DTO에서 체지방률 설정
-                muscleMass = createInBodyDto.muscleMass // DTO에서 근육량 설정
+                muscleMass = createInBodyDto.muscleMass, // DTO에서 근육량 설정
+                bmi = createInBodyDto.bmi, // DTO에서 BMI 설정
+                visceralFatLevel = createInBodyDto.visceralFatLevel, // DTO에서 내장 지방 수치 설정
+                basalMetabolicRate = createInBodyDto.basalMetabolicRate // DTO에서 기초 대사량 설정
             )
             val createdInBody = inBodyService.createInBody(inBody)
             ResponseEntity(createdInBody, HttpStatus.CREATED) // 생성된 데이터와 함께 201 상태 코드 반환
