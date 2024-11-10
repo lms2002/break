@@ -1,1 +1,1 @@
-rootProject.name = "break"
+rootProject.name = "breakApp"
