@@ -1,0 +1,82 @@
+-- 1. 데이터베이스 생성 및 utf8mb4 인코딩 설정
+CREATE DATABASE break CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 2. 데이터베이스 사용
+USE break;
+
+-- 3. 사용자(User) 테이블
+CREATE TABLE users (
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    login_id VARCHAR(50) NOT NULL UNIQUE,
+    user_name VARCHAR(20) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 4. 운동(Exercise) 테이블
+CREATE TABLE Exercise (
+    exercise_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    category VARCHAR(50) NOT NULL DEFAULT 'General',
+    targetArea VARCHAR(50) NOT NULL DEFAULT 'Full Body',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_category (category),
+    INDEX idx_target_area (targetArea)
+) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 5. 루틴(Routine) 테이블
+CREATE TABLE Routine (
+    routineId INT AUTO_INCREMENT PRIMARY KEY,
+    userId BIGINT,
+    name VARCHAR(50) NOT NULL,
+    CONSTRAINT fk_user_routine FOREIGN KEY (userId) REFERENCES users(user_id) ON DELETE CASCADE
+) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 6. 루틴-운동 관리자(RoutineExerciseManager) 테이블
+CREATE TABLE RoutineExerciseManager (
+    routine_exercise_manager_id INT AUTO_INCREMENT PRIMARY KEY,
+    routine_id INT,
+    exercise_id BIGINT,
+    CONSTRAINT fk_routine FOREIGN KEY (routine_id) REFERENCES Routine(routineId) ON DELETE CASCADE,
+    CONSTRAINT fk_exercise FOREIGN KEY (exercise_id) REFERENCES Exercise(exercise_id) ON DELETE CASCADE
+) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 7. 인바디(InBody) 테이블
+CREATE TABLE InBody (
+    in_body_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    measurement_date DATE,           -- 선택적 필드
+    weight FLOAT,                    -- 선택적 필드
+    body_fat_percentage FLOAT,       -- 선택적 필드
+    muscle_mass FLOAT,               -- 선택적 필드
+    bmi FLOAT,                       -- 선택적 필드
+    visceral_fat_level FLOAT,        -- 선택적 필드
+    basal_metabolic_rate FLOAT,      -- 선택적 필드
+    CONSTRAINT fk_user_inbody FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 8. 운동 로그(WorkoutLog) 테이블
+CREATE TABLE WorkoutLog (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    exercise_id BIGINT,
+    user_id BIGINT,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME NOT NULL,
+    duration INT GENERATED ALWAYS AS (TIMESTAMPDIFF(MINUTE, start_time, end_time)) STORED,
+    CONSTRAINT fk_exercise_workout FOREIGN KEY (exercise_id) REFERENCES Exercise(exercise_id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_workout FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- 9. 알림(Notification) 테이블
+CREATE TABLE Notification (
+    notificationId INT AUTO_INCREMENT PRIMARY KEY,
+    userId BIGINT,
+    message TEXT NOT NULL,
+    dateTime DATETIME NOT NULL,
+    CONSTRAINT fk_user_notification FOREIGN KEY (userId) REFERENCES users(user_id) ON DELETE CASCADE
+) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
