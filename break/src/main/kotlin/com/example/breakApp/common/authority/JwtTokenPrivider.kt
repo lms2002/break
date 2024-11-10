@@ -119,8 +119,13 @@ class JwtTokenProvider {
      */
     fun getUserIdFromToken(token: String): Long {
         val claims = getClaims(token)
-        return claims.subject.toLong()  // subject를 사용자 ID로 저장했다고 가정
+        return try {
+            claims["userId"].toString().toLong() // userId 클레임에서 사용자 ID를 숫자로 변환하여 가져옴
+        } catch (e: NumberFormatException) {
+            throw IllegalArgumentException("유효하지 않은 토큰입니다. 사용자 ID가 숫자 형식이 아닙니다.")
+        }
     }
+
     /**
      * JWT 토큰을 파싱하여 토큰의 본문(Claims) 정보를 반환
      */

@@ -14,7 +14,7 @@ class Member (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO(AI) 대신 IDENTITY 사용
     @Column(name = "user_id")  // 테이블의 user_id 필드와 매핑, 기본 키
-    var userId: Long? = null, // ?는 not null을 의미
+    var userId: Long? = null,
 
     @Column(name = "login_id", nullable = false, length = 30, updatable = false)
     val loginId: String,  // 로그인 ID 필드, 변경 불가능
