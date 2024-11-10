@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL 드라이버 클래스
+    url: jdbc:mysql://localhost:3306/break
+    username: root
+    password: 1592!
+    hikari:
+      maximum-pool-size: 20  # 연결 풀 크기를 20으로 설정
+      connection-timeout: 30000  # 연결 타임아웃 30초
+      idle-timeout: 60000  # 유휴 상태 타임아웃 60초
+      max-lifetime: 1800000  # 연결 최대 수명 30분
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update  # 테이블 재생성하지 않고 업데이트
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: true
+        highlight_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: break020425@gmail.com
+    password: fjzt ypbx qtxa fuvw
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+jwt:
+  secret: DadFufN4Oui8Bfv3ScFj6R9fyJ9hD45E6AGFsXgFsRhT4YSdSb
+logging:
+  pattern:
+    console: "[%d{HH:mm:ss.SSS}][%-5level][%logger.%method:line%line] - %msg%n"
+  level:
+    org:
+      hibernate:
+        SQL: debug
+        type.descriptor.sql: trace
