@@ -1,0 +1,3 @@
+netstat -ano
+8080 포트찾기
+taskkill /pid 번호 /f
