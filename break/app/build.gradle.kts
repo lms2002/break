@@ -58,7 +58,14 @@ dependencies {
     // Retrofit 라이브러리
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // JWT 인증을 위한 라이브러리
+    implementation("com.auth0:java-jwt:3.18.1")
 
+    // OkHttp 추가 (Retrofit과 함께 사용)
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+
+    // Gson을 통한 JSON 파싱
+    implementation("com.google.code.gson:gson:2.8.8")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
