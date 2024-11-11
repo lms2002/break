@@ -52,13 +52,10 @@ android {
 }
 
 dependencies {
-    // MySQL 의존성 추가
-    implementation("mysql:mysql-connector-java:5.1.49")
-
     // coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    // Retrofit으로 Strava API 설정
+    // Retrofit 라이브러리
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
