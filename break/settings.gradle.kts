@@ -20,5 +20,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "breakApp"
-include(":app")
+include(":break", ":backend")
+
  

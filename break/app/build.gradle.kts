@@ -20,6 +20,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "BASE_URL", "\"http://<서버 IP>:<포트>\"")
     }
 
     buildTypes {
