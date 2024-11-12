@@ -30,7 +30,13 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
-                it.requestMatchers("/api/member/signup", "/api/member/login", "/api/member/verify-email").anonymous()
+                it.requestMatchers(
+                    "/api/member/signup",
+                    "/api/member/login",
+                    "/api/member/verify-email",
+                    "/api/member/check-login-id",
+                    "/api/member/request-email-verification"
+                ).anonymous() // 익명 사용자만 접근 가능
                     .requestMatchers("/api/member/**").authenticated()  // 인증된 사용자만 접근 가능
                     .anyRequest().permitAll()
             }

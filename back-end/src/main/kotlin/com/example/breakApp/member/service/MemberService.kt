@@ -10,7 +10,7 @@ import com.example.breakApp.member.dto.MemberDtoRequest
 import com.example.breakApp.member.dto.MemberDtoResponse
 import com.example.breakApp.member.dto.UpdateDtoRequest
 import com.example.breakApp.member.entity.Member
-import com.example.breakApp.member.entity.PendingMember
+import com.example.breakApp.member.entity.PendingRegistration
 import com.example.breakApp.member.entity.VerificationToken
 import com.example.breakApp.member.repository.*
 import jakarta.transaction.Transactional
@@ -31,47 +31,101 @@ class MemberService(
     private val jwtTokenProvider: JwtTokenProvider,
     private val emailSender: JavaMailSender,
     private val passwordEncoder: PasswordEncoder,
-    private val tokenRepository: TokenRepository,
-    private val pendingMemberRepository: PendingMemberRepository,
     private val verificationTokenRepository: VerificationTokenRepository,
+    private val pendingRegistrationRepository: PendingRegistrationRepository,
 ) {
     /**
      * 회원가입
+     * 로그인 ID와 이메일 인증 상태를 확인하고, 비밀번호를 해시화한 후 새로운 회원을 등록합니다.
      */
     fun signUp(memberDtoRequest: MemberDtoRequest): String {
-        // 1. ID 중복 검사
-        var pendingMember: PendingMember? = pendingMemberRepository.findByEmail(memberDtoRequest.email)
-        if (pendingMember != null) {
-            throw InvalidInputException("email", "이미 회원가입을 요청한 이메일입니다.")
+        // 1. 로그인 ID 중복 검사: PendingRegistration에 이미 아이디가 임시 저장되었는지 확인
+        if (pendingRegistrationRepository.existsByLoginId(memberDtoRequest.loginId)) {
+            throw InvalidInputException("loginId", "로그인 아이디 중복 확인이 필요합니다.")
         }
 
-        // 2. 비밀번호 해시화
-        val hashedPassword = passwordEncoder.encode(memberDtoRequest.password)
+        // 2. 이메일 인증 확인: PendingRegistration에 인증된 이메일과 아이디가 있는지 확인
+        val pendingRegistration = pendingRegistrationRepository.findByEmailAndLoginId(
+            memberDtoRequest.email,
+            memberDtoRequest.loginId
+        ) ?: throw InvalidInputException("email", "이메일 인증이 필요합니다.")
 
-        // 3. PendingMember 엔티티 생성 및 저장
-        pendingMember = PendingMember(
+        // 3. 비밀번호 해시화 및 Member 객체 생성
+        val hashedPassword = passwordEncoder.encode(memberDtoRequest.password)
+        val member = Member(
             loginId = memberDtoRequest.loginId,
             password = hashedPassword,
             userName = memberDtoRequest.userName,
             email = memberDtoRequest.email,
             gender = memberDtoRequest.gender
         )
-        pendingMemberRepository.save(pendingMember)
 
-        // 4. 인증 코드 생성 및 저장
+        memberRepository.save(member)
+
+        // 인증 정보 삭제
+        pendingRegistrationRepository.delete(pendingRegistration)
+
+        return "회원가입이 완료되었습니다."
+    }
+
+
+    /**
+     * 로그인 아이디 중복 검증
+     * 주어진 로그인 ID가 이미 존재하는지 확인
+     */
+    fun isLoginIdDuplicate(loginId: String): Boolean {
+        return memberRepository.findByLoginId(loginId) != null
+    }
+    /**
+     * 이메일 인증 코드 전송 요청
+     * 이메일 인증을 위한 인증 코드를 생성하고, 해당 이메일로 전송
+     */
+    fun requestEmailVerification(email: String): String {
+        // 이메일이 이미 등록된 경우 예외 처리
+        if (memberRepository.findByEmail(email) != null) {
+            throw InvalidInputException("email", "이미 가입된 이메일입니다.")
+        }
+
+        // 인증 코드 생성
         val verificationCode = generateVerificationCode()
+
+        // 인증 토큰 생성 및 저장
         val verificationToken = VerificationToken(
             token = verificationCode,
-            pendingMember = pendingMember,
+            member = null,  // 아직 회원가입 전이므로 회원 정보는 없을 수 있습니다.
             expiryDate = LocalDateTime.now().plusMinutes(5)
         )
         verificationTokenRepository.save(verificationToken)
 
-        // 5. 인증 코드 이메일 전송
-        sendVerificationCodeEmail(memberDtoRequest.email, verificationCode)
+        // 이메일로 인증 코드 전송
+        sendVerificationCodeEmail(email, verificationCode)
 
-        return "이메일로 인증 코드가 발송되었습니다."
+        return "인증 코드가 이메일로 전송되었습니다."
     }
+    /**
+     * 이메일 인증 검증
+     * 주어진 이메일과 인증 코드가 유효한지 확인
+     */
+    @Transactional
+    fun verifyEmail(email: String, token: String): String {
+        // 토큰 조회
+        val verificationToken = verificationTokenRepository.findByToken(token)
+            ?: throw InvalidInputException("token", "유효하지 않은 인증 코드입니다.")
+
+        // 토큰 만료 여부 확인
+        if (verificationToken.isExpired()) {
+            throw InvalidInputException("token", "인증 코드가 만료되었습니다.")
+        }
+        // PendingRegistration 테이블에 이메일 정보 저장
+        if (!pendingRegistrationRepository.existsByEmail(email)) {
+            pendingRegistrationRepository.save(PendingRegistration(email = email, loginId = "임시로그인아이디")) // loginId는 임시로 저장할 값 설정
+        }
+
+        // 인증된 사용자 확인 후 토큰 삭제
+        verificationTokenRepository.delete(verificationToken)
+        return "이메일 인증이 완료되었습니다!"
+    }
+
     /**
      * 이메일로 6자리 인증 코드를 전송하는 메서드
      * @param userEmail 사용자 이메일 주소
@@ -85,90 +139,18 @@ class MemberService(
         emailSender.send(message)
     }
 
-    /**
-     * 인증 코드 검증 후 최종 회원가입 처리
-     */
-    fun completeSignUp(email: String, verificationCode: String): String {
-        // 인증 토큰 조회
-        val verificationToken = verificationTokenRepository.findByToken(verificationCode)
-            ?: throw InvalidInputException("verificationCode", "유효하지 않은 인증 코드입니다.")
-
-        // 만료 여부 확인
-        if (verificationToken.isExpired()) {
-            throw InvalidInputException("verificationCode", "인증 코드가 만료되었습니다.")
-        }
-
-        // PendingMember에서 Member로 전환
-        val pendingMember = verificationToken.pendingMember
-        val member = Member(
-            loginId = pendingMember.loginId,
-            password = pendingMember.password,
-            userName = pendingMember.userName,
-            email = pendingMember.email,
-            gender = pendingMember.gender
-        )
-        memberRepository.save(member)
-
-        // 사용된 인증 토큰 및 PendingMember 삭제
-        verificationTokenRepository.delete(verificationToken)
-        pendingMemberRepository.delete(pendingMember)
-
-        return "이메일 인증이 완료되었습니다. 회원가입이 완료되었습니다."
-    }
 
     /**
      * 이메일 랜덤 인증 번호
+     * 6자리의 랜덤 인증 코드를 생성하여 반환
      */
     fun generateVerificationCode(): String {
         return (100000..999999).random().toString()
     }
 
     /**
-     * 토큰 만료 날짜 계산
-     * 현재 시간으로부터 5분 이후로 만료 설정
-     */
-    private fun calculateExpiryDate(): LocalDateTime {
-        return LocalDateTime.now().plusMinutes(5)  // 토큰 유효 기간을 5분으로 설정
-    }
-
-    // 메서드가 정상작동하면 데이터 변경사항을 데이터베이스에 커밋
-    // 실패 시 자동 롤백하여 데이터베이스의 변경사항 취소
-    @Transactional
-    fun verifyEmail(email: String, token: String): String {
-        // 토큰 조회
-        val verificationToken = tokenRepository.findByToken(token)
-            ?: throw InvalidInputException("token", "유효하지 않은 토큰입니다.")
-
-        // 토큰 만료 여부 확인
-        if (verificationToken.isExpired()) {
-            throw InvalidInputException("token", "만료된 토큰입니다.")
-        }
-
-        // 이메일을 기준으로 PendingMember 조회
-        val pendingMember = pendingMemberRepository.findByEmail(email)
-            ?: throw InvalidInputException("email", "해당 이메일로 회원가입 요청이 없습니다.")
-
-        // `PendingMember` 데이터를 `Member`로 이동
-        val member = Member(
-            loginId = pendingMember.loginId,
-            password = pendingMember.password,
-            userName = pendingMember.userName,
-            email = pendingMember.email,
-            gender = pendingMember.gender,
-            isVerified = true  // 이메일 인증 완료 상태로 설정
-        )
-        memberRepository.save(member)
-
-        // 인증 후 사용된 토큰과 `PendingMember` 데이터 삭제
-        tokenRepository.delete(verificationToken)
-        pendingMemberRepository.delete(pendingMember)
-
-        return "이메일 인증이 완료되었습니다!"
-    }
-
-
-    /**
      * 로그인 -> 토큰 발행
+     * 로그인 ID와 비밀번호로 사용자를 인증하고, Access 및 Refresh 토큰을 발행
      */
     fun login(loginDto: LoginDto): TokenInfo {
         val authenticationToken = UsernamePasswordAuthenticationToken(loginDto.loginId, loginDto.password)
@@ -219,8 +201,6 @@ class MemberService(
     fun createAuthentication(userId: Long): Authentication {
         return UsernamePasswordAuthenticationToken(userId, null, emptyList()) // 권한 리스트는 빈 리스트 사용
     }
-
-
 
     fun getMemberById(userId: Long): Member {
         return memberRepository.findById(userId)

@@ -75,7 +75,7 @@ data class MemberDtoRequest(
             password = password,
             userName = userName,
             email = email,
-            gender = gender
+            gender = gender,
         )
 }
 

@@ -40,10 +40,6 @@ class Member (
 
     @Column(name = "refresh_token")  // 리프레시 토큰 필드 매핑 추가
     var refreshToken: String? = null,  // 리프레시 토큰 필드
-
-    // 이메일 인증 여부를 나타내는 필드, 기본값은 false
-    @Column(name = "is_verified", nullable = false)
-    var isVerified: Boolean = false
 ) {
     private fun LocalDate.formatData(): String =
         this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
@@ -62,8 +58,8 @@ class VerificationToken(
     val token: String,
 
     @OneToOne
-    @JoinColumn(name = "pending_member_id", referencedColumnName = "id")
-    val pendingMember: PendingMember,
+    @JoinColumn(name = "member_id", referencedColumnName = "user_id")
+    var member: Member? = null,
 
     @Column(nullable = false)
     val expiryDate: LocalDateTime
@@ -73,24 +69,17 @@ class VerificationToken(
         return LocalDateTime.now().isAfter(expiryDate)
     }
 }
+
 @Entity
-class PendingMember(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Table(name = "pending_registration")
+class PendingRegistration(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
-
-    @Column(nullable = false, unique = true)
-    val loginId: String,
-
-    @Column(nullable = false)
-    val password: String,
-
-    @Column(nullable = false)
-    val userName: String,
 
     @Column(nullable = false, unique = true)
     val email: String,
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    val gender: Gender
+    @Column(nullable = false, unique = true)
+    val loginId: String,  // 임시 저장할 loginId
 )
