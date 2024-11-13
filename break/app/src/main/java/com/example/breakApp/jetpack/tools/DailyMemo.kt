@@ -34,6 +34,17 @@ fun DailyMemoScreen(
                             contentDescription = "Back"
                         )
                     }
+                },
+                actions = {
+                    Button(
+                        onClick = { /* 저장 로직 */ },
+                        modifier = Modifier
+                            .width(90.dp)
+                            .padding(end = 8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000))
+                    ) {
+                        Text(text = "저장", color = Color.White)
+                    }
                 }
             )
         }
