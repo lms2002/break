@@ -60,6 +60,8 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     // JWT 인증을 위한 라이브러리
     implementation("com.auth0:java-jwt:3.18.1")
+// Retrofit과 Kotlin Coroutines를 함께 사용하기 위한 어댑터
+    implementation("com.squareup.retrofit2:adapter-kotlin-coroutines:2.9.0")
 
     // OkHttp 추가 (Retrofit과 함께 사용)
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
