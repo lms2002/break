@@ -1,7 +1,6 @@
 package com.example.breakApp.member.controller
 
 import com.example.breakApp.common.authority.JwtTokenProvider
-import com.example.breakApp.common.authority.SecurityConfig
 import com.example.breakApp.common.authority.TokenInfo
 import com.example.breakApp.common.dto.BaseResponse
 import com.example.breakApp.common.dto.CustomUser

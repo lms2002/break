@@ -71,8 +71,8 @@ class VerificationToken(
 }
 
 @Entity
-@Table(name = "pending_registration")
-class PendingRegistration(
+@Table(name = "verified_emails")
+class VerifiedEmail(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
@@ -80,6 +80,6 @@ class PendingRegistration(
     @Column(nullable = false, unique = true)
     val email: String,
 
-    @Column(nullable = false, unique = true)
-    val loginId: String,  // 임시 저장할 loginId
+    @Column(name = "verified_at", nullable = false)
+    val verifiedAt: LocalDateTime = LocalDateTime.now() // 인증 완료 시간
 )

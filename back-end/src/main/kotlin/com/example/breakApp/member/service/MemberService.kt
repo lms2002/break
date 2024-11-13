@@ -10,8 +10,8 @@ import com.example.breakApp.member.dto.MemberDtoRequest
 import com.example.breakApp.member.dto.MemberDtoResponse
 import com.example.breakApp.member.dto.UpdateDtoRequest
 import com.example.breakApp.member.entity.Member
-import com.example.breakApp.member.entity.PendingRegistration
 import com.example.breakApp.member.entity.VerificationToken
+import com.example.breakApp.member.entity.VerifiedEmail
 import com.example.breakApp.member.repository.*
 import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
@@ -32,23 +32,21 @@ class MemberService(
     private val emailSender: JavaMailSender,
     private val passwordEncoder: PasswordEncoder,
     private val verificationTokenRepository: VerificationTokenRepository,
-    private val pendingRegistrationRepository: PendingRegistrationRepository,
+    private val verifiedEmailRepository: VerifiedEmailRepository,
 ) {
     /**
      * 회원가입
      * 로그인 ID와 이메일 인증 상태를 확인하고, 비밀번호를 해시화한 후 새로운 회원을 등록합니다.
      */
     fun signUp(memberDtoRequest: MemberDtoRequest): String {
-        // 1. 로그인 ID 중복 검사: PendingRegistration에 이미 아이디가 임시 저장되었는지 확인
-        if (pendingRegistrationRepository.existsByLoginId(memberDtoRequest.loginId)) {
-            throw InvalidInputException("loginId", "로그인 아이디 중복 확인이 필요합니다.")
+        // 1. 로그인 ID 중복 검사
+        if (isLoginIdDuplicate(memberDtoRequest.loginId)) {
+            throw InvalidInputException("loginId", "이미 사용 중인 로그인 ID입니다.")
         }
 
-        // 2. 이메일 인증 확인: PendingRegistration에 인증된 이메일과 아이디가 있는지 확인
-        val pendingRegistration = pendingRegistrationRepository.findByEmailAndLoginId(
-            memberDtoRequest.email,
-            memberDtoRequest.loginId
-        ) ?: throw InvalidInputException("email", "이메일 인증이 필요합니다.")
+        // 2. 이메일 인증 확인 (VerifiedEmail에 해당 이메일이 있는지 확인)
+        val verifiedEmail = verifiedEmailRepository.findByEmail(memberDtoRequest.email)
+            ?: throw InvalidInputException("email", "이메일 인증이 필요합니다.")
 
         // 3. 비밀번호 해시화 및 Member 객체 생성
         val hashedPassword = passwordEncoder.encode(memberDtoRequest.password)
@@ -62,8 +60,8 @@ class MemberService(
 
         memberRepository.save(member)
 
-        // 인증 정보 삭제
-        pendingRegistrationRepository.delete(pendingRegistration)
+        // 4. 회원가입 후 VerifiedEmail 기록 삭제
+        verifiedEmailRepository.delete(verifiedEmail)
 
         return "회원가입이 완료되었습니다."
     }
@@ -104,7 +102,7 @@ class MemberService(
     }
     /**
      * 이메일 인증 검증
-     * 주어진 이메일과 인증 코드가 유효한지 확인
+     * 주어진 이메일과 인증 코드가 유효한지 확인한 후, VerifiedEmail 테이블에 저장
      */
     @Transactional
     fun verifyEmail(email: String, token: String): String {
@@ -116,20 +114,20 @@ class MemberService(
         if (verificationToken.isExpired()) {
             throw InvalidInputException("token", "인증 코드가 만료되었습니다.")
         }
-        // PendingRegistration 테이블에 이메일 정보 저장
-        if (!pendingRegistrationRepository.existsByEmail(email)) {
-            pendingRegistrationRepository.save(PendingRegistration(email = email, loginId = "임시로그인아이디")) // loginId는 임시로 저장할 값 설정
-        }
 
-        // 인증된 사용자 확인 후 토큰 삭제
+        // 이메일 인증 완료 처리: VerifiedEmail 테이블에 저장
+        verifiedEmailRepository.save(VerifiedEmail(email = email))
+
+        // 인증 후 사용된 토큰 삭제
         verificationTokenRepository.delete(verificationToken)
+
         return "이메일 인증이 완료되었습니다!"
     }
 
     /**
      * 이메일로 6자리 인증 코드를 전송하는 메서드
-     * @param userEmail 사용자 이메일 주소
-     * @param verificationCode 6자리 인증 코드
+     * @param email 사용자 이메일 주소
+     * @param code 6자리 인증 코드
      */
     private fun sendVerificationCodeEmail(email: String, code: String) {
         val message = SimpleMailMessage()
@@ -200,11 +198,6 @@ class MemberService(
     // userId를 기반으로 Authentication 객체 생성
     fun createAuthentication(userId: Long): Authentication {
         return UsernamePasswordAuthenticationToken(userId, null, emptyList()) // 권한 리스트는 빈 리스트 사용
-    }
-
-    fun getMemberById(userId: Long): Member {
-        return memberRepository.findById(userId)
-            .orElseThrow { RuntimeException("User not found") }
     }
 
     /**
