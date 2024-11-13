@@ -1,0 +1,4 @@
+cmd(관리자 권한)
+netstat -ano
+8089 포트찾기
+taskkill /pid 번호 /f
