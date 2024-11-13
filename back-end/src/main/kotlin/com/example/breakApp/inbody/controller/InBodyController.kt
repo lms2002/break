@@ -4,7 +4,6 @@ import com.example.breakApp.common.dto.BaseResponse
 import com.example.breakApp.common.status.ResultCode
 import com.example.breakApp.inbody.dto.CreateInBodyDto
 import com.example.breakApp.inbody.dto.InBodyResponseDto
-import com.example.breakApp.inbody.entity.InBody
 import com.example.breakApp.inbody.service.InBodyService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity

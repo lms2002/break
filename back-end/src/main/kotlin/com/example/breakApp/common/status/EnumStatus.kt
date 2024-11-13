@@ -13,7 +13,3 @@ enum class ResultCode(val msg:String){
     INBODY_UPDATED("인바디 데이터가 성공적으로 수정되었습니다."),
     INBODY_DELETED("인바디 데이터가 성공적으로 삭제되었습니다.")
 }
-
-enum class ROLE {
-    MEMBER
-}
