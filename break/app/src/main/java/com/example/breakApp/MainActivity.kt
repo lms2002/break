@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.ui.theme.Break_appTheme
 import com.example.breakApp.jetpack.screen.*
 import com.example.breakApp.jetpack.*
