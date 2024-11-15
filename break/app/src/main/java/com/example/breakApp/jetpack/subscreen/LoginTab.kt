@@ -1,3 +1,6 @@
+package com.example.breakApp.jetpack.subscreen
+
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
@@ -9,15 +12,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.breakApp.api.RetrofitInstance
+import com.example.breakApp.api.model.LoginDto
 import com.example.breakApp.jetpack.tools.DialogType
 import com.example.breakApp.jetpack.tools.FindDialog
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginTab(navController: NavController) {
-    var username by remember { mutableStateOf("") }
+    var loginId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var dialogType by remember { mutableStateOf(DialogType.NONE) }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -34,8 +41,8 @@ fun LoginTab(navController: NavController) {
         ) {
             // 아이디 입력 필드
             BasicTextField(
-                value = username,
-                onValueChange = { username = it },
+                value = loginId,
+                onValueChange = { loginId = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 12.dp)
@@ -56,7 +63,59 @@ fun LoginTab(navController: NavController) {
 
             // 로그인 버튼
             Button(
-                onClick = { /* 로그인 로직 */ },
+                onClick = {
+                    if (loginId.isBlank() || password.isBlank()) {
+                        Toast.makeText(
+                            navController.context,
+                            "ID와 비밀번호를 입력해주세요.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else if (loginId == "admin" && password == "1234") {
+                        // 관리자 계정 성공 처리
+                        navController.navigate("mainScreen") {
+                            popUpTo("loginTab") { inclusive = true }
+                        }
+                        Toast.makeText(
+                            navController.context,
+                            "관리자 로그인 성공",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        // Retrofit을 통한 로그인 처리
+                        scope.launch {
+                            try {
+                                val response = RetrofitInstance.api.login(LoginDto(loginId, password))
+                                if (response.isSuccessful) {
+                                    val tokenInfo = response.body()?.data
+                                    if (tokenInfo != null) {
+                                        // 로그인 성공 -> MainScreen으로 이동
+                                        navController.navigate("mainScreen") {
+                                            popUpTo("loginTab") { inclusive = true }
+                                        }
+                                    } else {
+                                        Toast.makeText(
+                                            navController.context,
+                                            "로그인 시도에 실패했습니다.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        navController.context,
+                                        "로그인 실패: ${response.code()}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    navController.context,
+                                    "오류 발생: ${e.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
@@ -114,4 +173,3 @@ fun LoginTab(navController: NavController) {
         }
     }
 }
-

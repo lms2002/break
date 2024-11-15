@@ -20,7 +20,7 @@ interface ApiService {
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<BaseResponse<String>>
 
     // 회원가입
-    @POST("api/member/signup")
+    @POST("member/signup")
     suspend fun signUp(@Body memberDtoRequest: MemberDtoRequest): Response<BaseResponse<Unit>>
 
     // 로그인

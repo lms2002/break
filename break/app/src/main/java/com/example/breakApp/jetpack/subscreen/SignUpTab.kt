@@ -1,5 +1,7 @@
 package com.example.breakApp.jetpack.subscreen
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
@@ -10,26 +12,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.breakApp.api.RetrofitInstance
 import androidx.navigation.NavController
+import com.example.breakApp.api.model.MemberDtoRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SignUpTab(navController: NavController) {
     // 입력 필드 상태 변수
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var birthDate by remember { mutableStateOf("") }
-    var targetWeight by remember { mutableStateOf("") }
+    var loginId by remember { mutableStateOf("") } // 아이디
+    var password by remember { mutableStateOf("") } // 비밀번호
+    var confirmPassword by remember { mutableStateOf("") } // 비밀번호 확인
+    var userName by remember { mutableStateOf("") } // 이름
+    var email by remember { mutableStateOf("") } // 이메일
+    var gender by remember { mutableStateOf("") } // 성별
+    val scope = rememberCoroutineScope()
 
     // 공통 Modifier 정의
     val inputFieldModifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 8.dp)
-        .height(32.dp)
+        .height(48.dp)
         .background(Color.Gray, shape = MaterialTheme.shapes.small)
-        .padding(16.dp)
+        .padding(horizontal = 16.dp, vertical = 8.dp)
 
     Box(
         modifier = Modifier
@@ -47,15 +57,10 @@ fun SignUpTab(navController: NavController) {
             // 아이디 입력 필드
             Text(text = "아이디", color = Color.White)
             BasicTextField(
-                value = username,
-                onValueChange = { username = it },
-                modifier = inputFieldModifier // 공통 Modifier 사용
-            )
-            Text(
-                text = "아이디는 영문과 숫자를 포함해야 합니다.",
-                color = Color.LightGray,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.align(Alignment.End) // 오른쪽 정렬
+                value = loginId,
+                onValueChange = { loginId = it },
+                modifier = inputFieldModifier,
+                textStyle = TextStyle(color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
             )
 
             // 비밀번호 입력 필드
@@ -63,13 +68,9 @@ fun SignUpTab(navController: NavController) {
             BasicTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = inputFieldModifier // 공통 Modifier 사용
-            )
-            Text(
-                text = "비밀번호는 8자 이상이어야 합니다.",
-                color = Color.LightGray,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.align(Alignment.End) // 오른쪽 정렬
+                modifier = inputFieldModifier,
+                visualTransformation = PasswordVisualTransformation(),
+                textStyle = TextStyle(color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
             )
 
             // 비밀번호 확인 입력 필드
@@ -77,43 +78,75 @@ fun SignUpTab(navController: NavController) {
             BasicTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                modifier = inputFieldModifier // 공통 Modifier 사용
+                modifier = inputFieldModifier,
+                visualTransformation = PasswordVisualTransformation(),
+                textStyle = TextStyle(color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+            )
+
+            // 이메일 입력 필드
+            Text(text = "이메일", color = Color.White)
+            BasicTextField(
+                value = email,
+                onValueChange = { email = it },
+                modifier = inputFieldModifier,
+                textStyle = TextStyle(color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
             )
 
             // 이름 입력 필드
             Text(text = "이름", color = Color.White)
             BasicTextField(
-                value = name,
-                onValueChange = { name = it },
-                modifier = inputFieldModifier // 공통 Modifier 사용
+                value = userName,
+                onValueChange = { userName = it },
+                modifier = inputFieldModifier,
+                textStyle = TextStyle(color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
             )
 
-            // 생년월일 입력 필드
-            Text(text = "생년월일", color = Color.White)
+            // 성별 입력 필드
+            Text(text = "성별 (MALE/FEMALE)", color = Color.White)
             BasicTextField(
-                value = birthDate,
-                onValueChange = { birthDate = it },
-                modifier = inputFieldModifier // 공통 Modifier 사용
+                value = gender,
+                onValueChange = { gender = it },
+                modifier = inputFieldModifier,
+                textStyle = TextStyle(color = Color.White, fontSize = MaterialTheme.typography.bodyMedium.fontSize)
             )
 
-            // 목표 체중 입력 필드
-            Text(text = "목표 체중", color = Color.White)
-            BasicTextField(
-                value = targetWeight,
-                onValueChange = { targetWeight = it },
-                modifier = inputFieldModifier // 공통 Modifier 사용
-            )
-
-            // 확인 버튼
+            // 가입하기 버튼
             Button(
                 onClick = {
-                    /**
-                     * 반드시
-                     * 여기에
-                     * 회원가입
-                     * 코드를
-                     * 만들 것.
-                     */
+                    if (loginId.isBlank() || password.isBlank() || confirmPassword.isBlank() || userName.isBlank() || email.isBlank() || gender.isBlank()) {
+                        Log.d("SignUpTab", "모든 필드를 입력해주세요.")
+                    } else if (password != confirmPassword) {
+                        Log.d("SignUpTab", "비밀번호가 일치하지 않습니다.")
+                    } else {
+                        scope.launch {
+                            try {
+                                // 서버에 회원가입 요청
+                                val response = RetrofitInstance.api.signUp(
+                                    MemberDtoRequest(
+                                        loginId = loginId,
+                                        password = password,
+                                        userName = userName,
+                                        email = email,
+                                        gender = gender
+                                    )
+                                )
+
+                                if (response.isSuccessful) {
+                                    // 성공 시 메인 화면으로 이동
+                                    Log.d("SignUpTab", "회원가입 성공: ${response.body()}")
+                                    navController.navigate("mainScreen") {
+                                        popUpTo("signUpTab") { inclusive = true }
+                                    }
+                                } else {
+                                    // 실패한 경우 로그 출력
+                                    Log.d("SignUpTab", "회원가입 실패: ${response.errorBody()?.string()}")
+                                }
+                            } catch (e: Exception) {
+                                // 예외 처리 (네트워크 오류 등)
+                                Log.d("SignUpTab", "오류 발생: ${e.message}")
+                            }
+                        }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
