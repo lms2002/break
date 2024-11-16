@@ -1,6 +1,5 @@
 package com.example.breakApp.jetpack.subscreen
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
@@ -9,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -24,6 +24,7 @@ fun LoginTab(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var dialogType by remember { mutableStateOf(DialogType.NONE) }
+    var statusMessage by remember { mutableStateOf("") } // 상태 메시지 변수 추가
     val scope = rememberCoroutineScope()
 
     Box(
@@ -39,6 +40,18 @@ fun LoginTab(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // 상태 메시지 표시: 아이디 입력 칸 상단에 배치
+            if (statusMessage.isNotBlank()) {
+                Text(
+                    text = statusMessage,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                )
+            }
+
             // 아이디 입력 필드
             BasicTextField(
                 value = loginId,
@@ -58,60 +71,39 @@ fun LoginTab(navController: NavController) {
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
                     .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(12.dp)
+                    .padding(12.dp),
+                visualTransformation = PasswordVisualTransformation() // 비밀번호 가리기
             )
 
             // 로그인 버튼
             Button(
                 onClick = {
-                    if (loginId.isBlank() || password.isBlank()) {
-                        Toast.makeText(
-                            navController.context,
-                            "ID와 비밀번호를 입력해주세요.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else if (loginId == "admin" && password == "1234") {
-                        // 관리자 계정 성공 처리
-                        navController.navigate("mainScreen") {
-                            popUpTo("loginTab") { inclusive = true }
+                    when {
+                        loginId.isBlank() || password.isBlank() -> {
+                            statusMessage = "ID와 비밀번호를 입력해주세요."
                         }
-                        Toast.makeText(
-                            navController.context,
-                            "관리자 로그인 성공",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        // Retrofit을 통한 로그인 처리
-                        scope.launch {
-                            try {
-                                val response = RetrofitInstance.api.login(LoginDto(loginId, password))
-                                if (response.isSuccessful) {
-                                    val tokenInfo = response.body()?.data
-                                    if (tokenInfo != null) {
-                                        // 로그인 성공 -> MainScreen으로 이동
-                                        navController.navigate("mainScreen") {
-                                            popUpTo("loginTab") { inclusive = true }
+                        else -> {
+                            // Retrofit을 통한 로그인 처리
+                            scope.launch {
+                                try {
+                                    val response = RetrofitInstance.api.login(LoginDto(loginId, password))
+                                    if (response.isSuccessful) {
+                                        val tokenInfo = response.body()?.data
+                                        if (tokenInfo != null) {
+                                            // 로그인 성공 -> MainScreen으로 이동
+                                            statusMessage = "로그인 성공"
+                                            navController.navigate("mainScreen") {
+                                                popUpTo("loginTab") { inclusive = true }
+                                            }
+                                        } else {
+                                            statusMessage = "로그인 시도에 실패했습니다."
                                         }
                                     } else {
-                                        Toast.makeText(
-                                            navController.context,
-                                            "로그인 시도에 실패했습니다.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        statusMessage = "로그인 실패: ${response.code()}"
                                     }
-                                } else {
-                                    Toast.makeText(
-                                        navController.context,
-                                        "로그인 실패: ${response.code()}",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                } catch (e: Exception) {
+                                    statusMessage = "오류 발생: ${e.message}"
                                 }
-                            } catch (e: Exception) {
-                                Toast.makeText(
-                                    navController.context,
-                                    "오류 발생: ${e.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
                             }
                         }
                     }
