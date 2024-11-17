@@ -31,7 +31,7 @@ CREATE TABLE Exercise (
 
 -- 5. 루틴(Routine) 테이블
 CREATE TABLE Routine (
-    routine_id INT AUTO_INCREMENT PRIMARY KEY,         -- ID 명칭 변경 (통일성을 위해 소문자 사용)
+    routine_id BIGINT AUTO_INCREMENT PRIMARY KEY,         -- ID 명칭 변경 (통일성을 위해 소문자 사용)
     user_id BIGINT NOT NULL,                           -- 사용자 ID (외래키)
     name VARCHAR(50) NOT NULL,                        -- 루틴 이름
     description TEXT,                                  -- 루틴 설명 추가
@@ -52,7 +52,7 @@ CREATE TABLE RoutineExerciseManager (
 
 -- 7. 인바디(InBody) 테이블
 CREATE TABLE InBody (
-    in_body_id INT AUTO_INCREMENT PRIMARY KEY,
+    in_body_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
     measurement_date DATE,           -- 선택적 필드
     weight FLOAT,                    -- 선택적 필드
