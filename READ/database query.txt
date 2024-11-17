@@ -31,24 +31,28 @@ CREATE TABLE Exercise (
 
 -- 5. 루틴(Routine) 테이블
 CREATE TABLE Routine (
-    routineId INT AUTO_INCREMENT PRIMARY KEY,
-    userId BIGINT,
-    name VARCHAR(50) NOT NULL,
-    CONSTRAINT fk_user_routine FOREIGN KEY (userId) REFERENCES users(user_id) ON DELETE CASCADE
+    routine_id BIGINT AUTO_INCREMENT PRIMARY KEY,         -- ID 명칭 변경 (통일성을 위해 소문자 사용)
+    user_id BIGINT NOT NULL,                           -- 사용자 ID (외래키)
+    name VARCHAR(50) NOT NULL,                        -- 루틴 이름
+    description TEXT,                                  -- 루틴 설명 추가
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    -- 생성일 자동 기록
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 수정일 자동 갱신
+    CONSTRAINT fk_user_routine FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 
 -- 6. 루틴-운동 관리자(RoutineExerciseManager) 테이블
 CREATE TABLE RoutineExerciseManager (
     routine_exercise_manager_id INT AUTO_INCREMENT PRIMARY KEY,
     routine_id INT,
     exercise_id BIGINT,
-    CONSTRAINT fk_routine FOREIGN KEY (routine_id) REFERENCES Routine(routineId) ON DELETE CASCADE,
+    CONSTRAINT fk_routine FOREIGN KEY (routine_id) REFERENCES Routine(routine_id) ON DELETE CASCADE,
     CONSTRAINT fk_exercise FOREIGN KEY (exercise_id) REFERENCES Exercise(exercise_id) ON DELETE CASCADE
 ) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- 7. 인바디(InBody) 테이블
 CREATE TABLE InBody (
-    in_body_id INT AUTO_INCREMENT PRIMARY KEY,
+    in_body_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
     measurement_date DATE,           -- 선택적 필드
     weight FLOAT,                    -- 선택적 필드

@@ -55,6 +55,37 @@ class InBodyService @Autowired constructor(
             basalMetabolicRate = inBody.basalMetabolicRate
         )
     }
+    /**
+     * 특정 인바디 데이터 조회
+     * @param id 조회할 인바디 데이터의 ID
+     * @param token 사용자 인증 토큰
+     * @return 조회된 인바디 데이터를 InBodyResponseDto 형태로 반환
+     */
+    fun getInBodyById(id: Long, token: String): InBodyResponseDto {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
+        val member = memberRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
+        val inBody = inBodyRepository.findById(id).orElseThrow { RuntimeException("InBody record not found") }
+
+        if (inBody.member != member) {
+            throw RuntimeException("User not authorized to access this record")
+        }
+
+        return InBodyResponseDto(
+            inBodyId = inBody.inBodyId ?: throw IllegalStateException("inBodyId is null"),
+            member = MemberResponseDto(
+                userName = member.userName,
+                gender = member.gender.name
+            ),
+            measurementDate = inBody.measurementDate,
+            weight = inBody.weight,
+            bodyFatPercentage = inBody.bodyFatPercentage,
+            muscleMass = inBody.muscleMass,
+            bmi = inBody.bmi,
+            visceralFatLevel = inBody.visceralFatLevel,
+            basalMetabolicRate = inBody.basalMetabolicRate
+        )
+    }
+
 
     /**
      * 모든 인바디 데이터 조회
