@@ -50,7 +50,7 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
                     )
                 }
             ) {
-                val tabs = listOf("운동", "사진", "신체")
+                val tabs = listOf("운동", "사진", "인바디")
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
@@ -64,7 +64,7 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
             when (selectedTab) {
                 0 -> HistoryExercise(navController) // 운동 탭 내용
                 1 -> HistoryPhoto() // 사진 탭 내용
-                2 -> HistoryBody() // 신체 탭 내용
+                2 -> HistoryBody(navController) // 신체 탭 내용
             }
         }
     }
