@@ -44,7 +44,7 @@ CREATE TABLE Routine (
 -- 6. 루틴-운동 관리자(RoutineExerciseManager) 테이블
 CREATE TABLE RoutineExerciseManager (
     routine_exercise_manager_id INT AUTO_INCREMENT PRIMARY KEY,
-    routine_id INT,
+    routine_id BIGINT,
     exercise_id BIGINT,
     CONSTRAINT fk_routine FOREIGN KEY (routine_id) REFERENCES Routine(routine_id) ON DELETE CASCADE,
     CONSTRAINT fk_exercise FOREIGN KEY (exercise_id) REFERENCES Exercise(exercise_id) ON DELETE CASCADE
@@ -52,17 +52,18 @@ CREATE TABLE RoutineExerciseManager (
 
 -- 7. 인바디(InBody) 테이블
 CREATE TABLE InBody (
-    in_body_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT,
-    measurement_date DATE,           -- 선택적 필드
-    weight FLOAT,                    -- 선택적 필드
-    body_fat_percentage FLOAT,       -- 선택적 필드
-    muscle_mass FLOAT,               -- 선택적 필드
-    bmi FLOAT,                       -- 선택적 필드
-    visceral_fat_level FLOAT,        -- 선택적 필드
-    basal_metabolic_rate FLOAT,      -- 선택적 필드
+    in_body_id BIGINT AUTO_INCREMENT PRIMARY KEY,  -- 인바디 ID (기본키)
+    user_id BIGINT,                                -- 유저 ID (users 테이블의 user_id를 참조)
+    measurement_date DATE,                         -- 측정 날짜
+    age INT,                                       -- 나이
+    height FLOAT,                                  -- 키 (cm)
+    weight FLOAT,                                  -- 체중 (kg)
+    muscle_mass FLOAT,                             -- 근육량 (kg)
+    bmi FLOAT,                                     -- 체질량지수 (BMI)
+    body_fat_percentage FLOAT,                     -- 체지방률 (%)
     CONSTRAINT fk_user_inbody FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 
 -- 8. 운동 로그(WorkoutLog) 테이블
 CREATE TABLE WorkoutLog (

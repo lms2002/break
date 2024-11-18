@@ -97,20 +97,20 @@ class JwtTokenProvider {
      */
     fun validateToken(token: String): Boolean {
         try {
-            getClaims(token) // 클레임 정보 가져오기
-            return true
+            val claims = getClaims(token) // 기존 메서드 재사용
+            // 토큰의 만료 여부 확인
+            return claims.expiration.after(Date()) // 만료일이 현재 시간 이후인지 확인
         } catch (e: Exception) {
             when (e) {
-                is SecurityException -> {}  // Invalid JWT Token
-                is MalformedJwtException -> {}  // Invalid JWT Token
-                is ExpiredJwtException -> {}    // Expired JWT Token
-                is UnsupportedJwtException -> {}    // Unsupported JWT Token
-                is IllegalArgumentException -> {}   // JWT claims string is empty
-                else -> {}  // else
+                is SecurityException -> println("Invalid JWT Token: ${e.message}")
+                is MalformedJwtException -> println("Invalid JWT Token: ${e.message}")
+                is ExpiredJwtException -> println("Expired JWT Token: ${e.message}")
+                is UnsupportedJwtException -> println("Unsupported JWT Token: ${e.message}")
+                is IllegalArgumentException -> println("JWT claims string is empty: ${e.message}")
+                else -> println("Unknown exception: ${e.message}")
             }
-            println(e.message)
+            return false
         }
-        return false
     }
 
     /**
@@ -124,7 +124,6 @@ class JwtTokenProvider {
             throw IllegalArgumentException("유효하지 않은 토큰입니다. 사용자 ID가 숫자 형식이 아닙니다.")
         }
     }
-
     /**
      * JWT 토큰을 파싱하여 토큰의 본문(Claims) 정보를 반환
      */
@@ -135,3 +134,4 @@ class JwtTokenProvider {
             .parseClaimsJws(token)
             .body
 }
+
