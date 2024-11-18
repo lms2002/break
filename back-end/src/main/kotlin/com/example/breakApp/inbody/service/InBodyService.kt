@@ -31,12 +31,12 @@ class InBodyService @Autowired constructor(
             InBody(
                 member = member,
                 measurementDate = createInBodyDto.measurementDate,
+                age = createInBodyDto.age,
+                height = createInBodyDto.height,
                 weight = createInBodyDto.weight,
                 bodyFatPercentage = createInBodyDto.bodyFatPercentage,
                 muscleMass = createInBodyDto.muscleMass,
-                bmi = createInBodyDto.bmi,
-                visceralFatLevel = createInBodyDto.visceralFatLevel,
-                basalMetabolicRate = createInBodyDto.basalMetabolicRate
+                bmi = createInBodyDto.bmi
             )
         )
 
@@ -46,13 +46,13 @@ class InBodyService @Autowired constructor(
                 userName = member.userName,
                 gender = member.gender.name
             ),
-            measurementDate = inBody.measurementDate,
-            weight = inBody.weight,
-            bodyFatPercentage = inBody.bodyFatPercentage,
-            muscleMass = inBody.muscleMass,
-            bmi = inBody.bmi,
-            visceralFatLevel = inBody.visceralFatLevel,
-            basalMetabolicRate = inBody.basalMetabolicRate
+            measurementDate = createInBodyDto.measurementDate,
+            age = createInBodyDto.age,
+            height = createInBodyDto.height,
+            weight = createInBodyDto.weight,
+            bodyFatPercentage = createInBodyDto.bodyFatPercentage,
+            muscleMass = createInBodyDto.muscleMass,
+            bmi = createInBodyDto.bmi
         )
     }
     /**
@@ -77,12 +77,12 @@ class InBodyService @Autowired constructor(
                 gender = member.gender.name
             ),
             measurementDate = inBody.measurementDate,
+            age = inBody.age,
+            height = inBody.height,
             weight = inBody.weight,
             bodyFatPercentage = inBody.bodyFatPercentage,
             muscleMass = inBody.muscleMass,
-            bmi = inBody.bmi,
-            visceralFatLevel = inBody.visceralFatLevel,
-            basalMetabolicRate = inBody.basalMetabolicRate
+            bmi = inBody.bmi
         )
     }
 
@@ -105,12 +105,12 @@ class InBodyService @Autowired constructor(
                     gender = member.gender.name
                 ),
                 measurementDate = inBody.measurementDate,
+                age = inBody.age,
+                height = inBody.height,
                 weight = inBody.weight,
                 bodyFatPercentage = inBody.bodyFatPercentage,
                 muscleMass = inBody.muscleMass,
-                bmi = inBody.bmi,
-                visceralFatLevel = inBody.visceralFatLevel,
-                basalMetabolicRate = inBody.basalMetabolicRate
+                bmi = inBody.bmi
             )
         }
     }
@@ -133,12 +133,12 @@ class InBodyService @Autowired constructor(
 
         inBody.apply {
             measurementDate = updateDto.measurementDate
+            age = updateDto.age
+            height = updateDto.height
             weight = updateDto.weight
             bodyFatPercentage = updateDto.bodyFatPercentage
             muscleMass = updateDto.muscleMass
             bmi = updateDto.bmi
-            visceralFatLevel = updateDto.visceralFatLevel
-            basalMetabolicRate = updateDto.basalMetabolicRate
         }
         inBodyRepository.save(inBody)
 
@@ -149,12 +149,12 @@ class InBodyService @Autowired constructor(
                 gender = member.gender.name
             ),
             measurementDate = inBody.measurementDate,
+            age = inBody.age,
+            height = inBody.height,
             weight = inBody.weight,
             bodyFatPercentage = inBody.bodyFatPercentage,
             muscleMass = inBody.muscleMass,
             bmi = inBody.bmi,
-            visceralFatLevel = inBody.visceralFatLevel,
-            basalMetabolicRate = inBody.basalMetabolicRate
         )
     }
 
