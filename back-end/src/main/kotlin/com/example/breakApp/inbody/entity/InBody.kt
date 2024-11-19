@@ -6,7 +6,7 @@ import jakarta.persistence.*
 import java.time.LocalDate
 
 @Entity
-@Table(name = "InBody")
+@Table(name = "in_body")
 class InBody(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

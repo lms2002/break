@@ -17,7 +17,4 @@ class Routine(
 
     @Column(nullable = false, length = 50)
     var name: String,
-
-    @Column(columnDefinition = "TEXT")
-    var description: String
 )
