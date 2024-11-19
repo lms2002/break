@@ -14,20 +14,20 @@ data class InBodyResponseDto(
     val member: MemberResponseDto,     // 사용자 정보 (이름 및 성별)
     val measurementDate: LocalDate?,   // 측정 날짜
     val age: Int?,                     // 사용자 나이
-    val height: Float?,                // 사용자 키 (cm) - Float로 설정
-    val weight: Float?,                // 사용자 체중 (kg) - Float로 설정
-    val bodyFatPercentage: Float?,     // 체지방률 (%) - Float로 설정
-    val muscleMass: Float?,            // 근육량 (kg) - Float로 설정
-    val bmi: Float?                    // 체질량지수 (BMI) - Float로 설정
+    val height: Float?,                // 사용자 키 (cm)
+    val weight: Float?,                // 사용자 체중 (kg)
+    val bodyFatPercentage: Float?,     // 체지방률 (%)
+    val muscleMass: Float?,            // 근육량 (kg)
+    val bmi: Float?                    // 체질량지수 (BMI)
 )
 
 // 인바디 생성 요청 DTO
 data class CreateInBodyDto(
     val measurementDate: LocalDate?,  // 측정 날짜
     val age: Int?,                    // 사용자 나이
-    val height: Float?,               // 사용자 키 (cm) - Float로 설정
-    val weight: Float?,               // 사용자 체중 (kg) - Float로 설정
-    val bodyFatPercentage: Float?,    // 체지방률 (%) - Float로 설정
-    val muscleMass: Float?,           // 근육량 (kg) - Float로 설정
-    val bmi: Float?                   // 체질량지수 (BMI) - Float로 설정
+    val height: Float?,               // 사용자 키 (cm)
+    val weight: Float?,               // 사용자 체중 (kg)
+    val bodyFatPercentage: Float?,    // 체지방률 (%)
+    val muscleMass: Float?,           // 근육량 (kg)
+    val bmi: Float?                   // 체질량지수 (BMI)
 )
