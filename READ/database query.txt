@@ -43,13 +43,13 @@ CREATE TABLE Routine (
 
 -- 6. 루틴-운동 관리자(routine_exercise_manager) 테이블
 CREATE TABLE routine_exercise_manager (
-    routine_exercise_manager_id INT AUTO_INCREMENT PRIMARY KEY,  -- 고유 ID
-    routine_id BIGINT NOT NULL,                                 -- 루틴 ID
-    exercise_id BIGINT NOT NULL,                                -- 운동 ID
+    routine_id BIGINT NOT NULL,                                 -- 루틴 ID (복합 키)
+    exercise_id BIGINT NOT NULL,                                -- 운동 ID (복합 키)
     sets INT DEFAULT 1,                                         -- 루틴 내 운동 세트 수
     repetitions INT DEFAULT 10,                                 -- 루틴 내 운동 반복 횟수
     weight FLOAT DEFAULT 10,                                    -- 루틴 내 운동 중량
     rest_time_seconds INT DEFAULT 30,                           -- 세트 간 휴식 시간 (기본 30초)
+    PRIMARY KEY (routine_id, exercise_id),                      -- 복합 키 설정
     CONSTRAINT fk_routine FOREIGN KEY (routine_id) REFERENCES Routine(routine_id) ON DELETE CASCADE,
     CONSTRAINT fk_exercise FOREIGN KEY (exercise_id) REFERENCES Exercise(exercise_id) ON DELETE CASCADE
 ) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
