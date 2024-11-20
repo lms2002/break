@@ -13,7 +13,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.breakApp.api.RetrofitInstance
+import com.example.breakApp.api.model.FindIdRequest
 import com.example.breakApp.api.model.LoginDto
+import com.example.breakApp.api.model.ResetPasswordRequest
 import com.example.breakApp.jetpack.tools.DialogType
 import com.example.breakApp.jetpack.tools.FindDialog
 import com.example.breakApp.tools.PreferenceManager
@@ -25,7 +27,7 @@ fun LoginTab(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var dialogType by remember { mutableStateOf(DialogType.NONE) }
-    var statusMessage by remember { mutableStateOf("") } // 상태 메시지 변수 추가
+    var statusMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
     Box(
@@ -41,7 +43,6 @@ fun LoginTab(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // 상태 메시지 표시: 아이디 입력 칸 상단에 배치
             if (statusMessage.isNotBlank()) {
                 Text(
                     text = statusMessage,
@@ -73,7 +74,7 @@ fun LoginTab(navController: NavController) {
                     .padding(vertical = 4.dp)
                     .background(Color.Gray, shape = MaterialTheme.shapes.small)
                     .padding(12.dp),
-                visualTransformation = PasswordVisualTransformation() // 비밀번호 가리기
+                visualTransformation = PasswordVisualTransformation()
             )
 
             // 로그인 버튼
@@ -90,13 +91,8 @@ fun LoginTab(navController: NavController) {
                                     if (response.isSuccessful) {
                                         val tokenInfo = response.body()?.data
                                         if (tokenInfo != null) {
-                                            // SharedPreferences에 토큰 저장
-                                            PreferenceManager.saveTokens(
-                                                accessToken = tokenInfo.accessToken,
-                                                refreshToken = tokenInfo.refreshToken
-                                            )
-
-                                            // 로그인 성공 -> MainScreen으로 이동
+                                            // AccessToken만 저장
+                                            PreferenceManager.saveAccessToken(tokenInfo.accessToken)
                                             statusMessage = "로그인 성공"
                                             navController.navigate("mainScreen") {
                                                 popUpTo("loginTab") { inclusive = true }
@@ -121,6 +117,7 @@ fun LoginTab(navController: NavController) {
             ) {
                 Text(text = "로그인", color = Color.White)
             }
+
             // 하단 버튼: ID찾기, PW찾기, 회원가입
             Row(
                 modifier = Modifier
@@ -161,12 +158,54 @@ fun LoginTab(navController: NavController) {
             }
         }
 
-        // 다이얼로그 표시
         if (showDialog) {
-            FindDialog(
-                dialogType = dialogType,
-                onDismissRequest = { showDialog = false }
-            )
+            when (dialogType) {
+                DialogType.ID_FIND -> {
+                    FindDialog(
+                        dialogType = dialogType,
+                        onDismissRequest = { showDialog = false },
+                        onSubmit = { emailInput ->
+                            scope.launch {
+                                try {
+                                    val response = RetrofitInstance.api.findIdByEmail(FindIdRequest(emailInput))
+                                    if (response.isSuccessful) {
+                                        statusMessage = "아이디가 이메일로 전송되었습니다."
+                                    } else {
+                                        statusMessage = "아이디 찾기 실패"
+                                    }
+                                } catch (e: Exception) {
+                                    statusMessage = "오류 발생: ${e.message}"
+                                }
+                            }
+                        }
+                    )
+                }
+                DialogType.PW_FIND -> {
+                    FindDialog(
+                        dialogType = dialogType,
+                        onDismissRequest = { showDialog = false },
+                        onSubmit = { emailInput ->
+                            scope.launch {
+                                try {
+                                    val response = RetrofitInstance.api.resetPassword(
+                                        ResetPasswordRequest(emailInput)
+                                    )
+                                    if (response.isSuccessful) {
+                                        statusMessage = "새로운 비밀번호가 이메일로 전송되었습니다."
+                                    } else {
+                                        statusMessage = "비밀번호 재설정 실패"
+                                    }
+                                } catch (e: Exception) {
+                                    statusMessage = "오류 발생: ${e.message}"
+                                }
+                            }
+                        }
+                    )
+                }
+                else -> { // DialogType.NONE 또는 처리되지 않은 경우
+                    showDialog = false
+                }
+            }
         }
     }
 }

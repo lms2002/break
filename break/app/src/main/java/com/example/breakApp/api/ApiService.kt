@@ -27,7 +27,6 @@ interface ApiService {
     @POST("member/login")
     suspend fun login(@Body loginDto: LoginDto): Response<BaseResponse<TokenInfo>>
 
-    // 내 정보 조회
     @GET("member/info")
     suspend fun getMyInfo(@Header("Authorization") token: String): Response<BaseResponse<MemberDtoResponse>>
 
@@ -66,4 +65,6 @@ interface ApiService {
     @POST("auth/validate-token")
     suspend fun validateToken(
         @Header("Authorization") token: String): Response<BaseResponse<Boolean>>
+
+
 }
