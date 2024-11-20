@@ -77,20 +77,19 @@ CREATE TABLE WorkoutLog (
     log_id INT AUTO_INCREMENT PRIMARY KEY,              -- 운동 로그 ID (기본키)
     user_id BIGINT NOT NULL,                            -- 유저 ID (users 테이블 참조)
     routine_id BIGINT NOT NULL,                         -- 루틴 ID (Routine 테이블 참조)
-    routine_exercise_manager_id INT NOT NULL,           -- 루틴-운동 관리자 ID
+    exercise_id BIGINT NOT NULL,                        -- 운동 ID (Exercise 테이블 참조)
     start_time DATETIME NOT NULL,                       -- 운동 시작 시간
     end_time DATETIME,                                  -- 운동 종료 시간 (NULL일 수 있음)
     duration INT GENERATED ALWAYS AS                   -- 운동 소요 시간 계산 (분 단위로 자동 계산)
         (TIMESTAMPDIFF(MINUTE, start_time, end_time)) STORED,
     actual_repetitions INT DEFAULT 0,                  -- 실제 수행한 횟수
     actual_sets INT DEFAULT 0,                         -- 실제 수행한 세트
-    total_volume FLOAT DEFAULT 0,                      -- 운동 볼륨 (추가: 중량 * 반복횟수 * 세트 수)
-    exercises_count INT DEFAULT 0,                     -- 수행한 운동 종목 수
+    total_volume FLOAT DEFAULT 0,                      -- 운동 볼륨 (중량 * 반복횟수 * 세트 수)
     calories_burned FLOAT DEFAULT 0,                   -- 소모한 칼로리
     notes TEXT,                                         -- 추가 메모
     CONSTRAINT fk_user_workout FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_routine_workout FOREIGN KEY (routine_id) REFERENCES Routine(routine_id) ON DELETE CASCADE
-    --  ,CONSTRAINT fk_routine_exercise_manager FOREIGN KEY (routine_exercise_manager_id) REFERENCES routine_exercise_manager(routine_exercise_manager_id) ON DELETE CASCADE -- 임시 주석(운동로그 구현 완료 시 주석 제거)
+    CONSTRAINT fk_routine_workout FOREIGN KEY (routine_id, exercise_id) 
+        REFERENCES routine_exercise_manager(routine_id, exercise_id) ON DELETE CASCADE -- 복합키로 연결
 ) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 
