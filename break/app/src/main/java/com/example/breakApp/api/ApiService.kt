@@ -62,4 +62,8 @@ interface ApiService {
     // 이메일 인증 코드 확인 요청
     @POST("member/verify-email")
     suspend fun verifyEmailCode(@Body request: VerifyCodeRequest): Response<BaseResponse<Unit>>
+
+    @POST("auth/validate-token")
+    suspend fun validateToken(
+        @Header("Authorization") token: String): Response<BaseResponse<Boolean>>
 }

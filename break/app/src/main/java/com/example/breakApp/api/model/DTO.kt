@@ -97,3 +97,9 @@ data class VerifyCodeRequest(
     val email: String,           // 인증할 사용자 이메일
     val verificationCode: String  // 6자리 인증 코드
 )
+
+// TokenValidationResponse.kt
+data class TokenValidationResponse(
+    val data: Boolean,
+    val message: String
+)

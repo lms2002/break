@@ -16,6 +16,7 @@ import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.LoginDto
 import com.example.breakApp.jetpack.tools.DialogType
 import com.example.breakApp.jetpack.tools.FindDialog
+import com.example.breakApp.tools.PreferenceManager
 import kotlinx.coroutines.launch
 
 @Composable
@@ -83,13 +84,18 @@ fun LoginTab(navController: NavController) {
                             statusMessage = "ID와 비밀번호를 입력해주세요."
                         }
                         else -> {
-                            // Retrofit을 통한 로그인 처리
                             scope.launch {
                                 try {
                                     val response = RetrofitInstance.api.login(LoginDto(loginId, password))
                                     if (response.isSuccessful) {
                                         val tokenInfo = response.body()?.data
                                         if (tokenInfo != null) {
+                                            // SharedPreferences에 토큰 저장
+                                            PreferenceManager.saveTokens(
+                                                accessToken = tokenInfo.accessToken,
+                                                refreshToken = tokenInfo.refreshToken
+                                            )
+
                                             // 로그인 성공 -> MainScreen으로 이동
                                             statusMessage = "로그인 성공"
                                             navController.navigate("mainScreen") {
@@ -115,7 +121,6 @@ fun LoginTab(navController: NavController) {
             ) {
                 Text(text = "로그인", color = Color.White)
             }
-
             // 하단 버튼: ID찾기, PW찾기, 회원가입
             Row(
                 modifier = Modifier

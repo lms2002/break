@@ -8,6 +8,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,9 +16,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.breakApp.R
+import com.example.breakApp.api.RetrofitInstance
+import com.example.breakApp.tools.PreferenceManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginScreen(navController: NavController) {
+    // 자동으로 토큰 유효성 검사를 수행
+    LaunchedEffect(Unit) {
+        checkTokenValidity(navController)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,6 +76,42 @@ fun LoginScreen(navController: NavController) {
             colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray) // 버튼 색상
         ) {
             Text(text = "회원가입", color = Color.White) // 버튼 텍스트
+        }
+    }
+}
+
+/**
+ * 토큰 유효성을 확인하고 적절히 화면 이동
+ */
+private fun checkTokenValidity(navController: NavController) {
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val token = PreferenceManager.getAccessToken()
+            if (token.isNullOrEmpty()) {
+                // 토큰이 없으면 로그인 화면으로 이동
+                withContext(Dispatchers.Main) {
+                    navController.navigate("loginTab")
+                }
+            } else {
+                // 서버에 토큰 유효성 검사 요청
+                val response = RetrofitInstance.api.validateToken("Bearer $token")
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && response.body()?.data == true) {
+                        // 토큰이 유효하면 MainScreen으로 이동
+                        navController.navigate("mainScreen") {
+                            popUpTo("loginScreen") { inclusive = true }
+                        }
+                    } else {
+                        // 토큰이 무효하면 LoginTab으로 이동
+                        navController.navigate("loginTab")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // 예외 발생 시 LoginTab으로 이동
+            withContext(Dispatchers.Main) {
+                navController.navigate("loginTab")
+            }
         }
     }
 }
