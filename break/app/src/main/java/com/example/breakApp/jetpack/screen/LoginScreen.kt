@@ -27,9 +27,11 @@ fun LoginScreen(navController: NavController) {
     var skipValidation by remember { mutableStateOf(false) }
 
     // 앱 시작 시 토큰 유효성 검사
-    LaunchedEffect(Unit) {
+    LaunchedEffect(skipValidation) {
         if (!skipValidation) {
-            checkTokenAndUserValidity(navController)
+            checkTokenAndUserValidity(navController, onValidationSkipped = {
+                skipValidation = true
+            })
         }
     }
 
@@ -91,7 +93,10 @@ fun LoginScreen(navController: NavController) {
 /**
  * 토큰 및 사용자 정보를 확인하고 적절히 화면 전환
  */
-private fun checkTokenAndUserValidity(navController: NavController) {
+private fun checkTokenAndUserValidity(
+    navController: NavController,
+    onValidationSkipped: () -> Unit
+) {
     CoroutineScope(Dispatchers.IO).launch {
         try {
             val token = PreferenceManager.getAccessToken()
@@ -99,7 +104,7 @@ private fun checkTokenAndUserValidity(navController: NavController) {
             if (token.isNullOrEmpty()) {
                 // 토큰이 없으면 로그인 화면 유지
                 withContext(Dispatchers.Main) {
-                    navController.navigate("loginScreen")
+                    onValidationSkipped()
                 }
                 return@launch
             }
@@ -118,21 +123,21 @@ private fun checkTokenAndUserValidity(navController: NavController) {
                     } else {
                         // 사용자 정보가 없으면 토큰 삭제 후 LoginScreen 유지
                         PreferenceManager.clearAccessToken()
-                        navController.navigate("loginScreen")
+                        onValidationSkipped()
                     }
                 }
             } else {
                 // 토큰이 유효하지 않으면 토큰 삭제 후 LoginScreen 유지
                 PreferenceManager.clearAccessToken()
                 withContext(Dispatchers.Main) {
-                    navController.navigate("loginScreen")
+                    onValidationSkipped()
                 }
             }
         } catch (e: Exception) {
             // 예외 발생 시 토큰 삭제 후 LoginScreen 유지
             PreferenceManager.clearAccessToken()
             withContext(Dispatchers.Main) {
-                navController.navigate("loginScreen")
+                onValidationSkipped()
             }
         }
     }

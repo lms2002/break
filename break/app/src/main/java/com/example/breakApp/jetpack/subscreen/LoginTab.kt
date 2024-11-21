@@ -84,14 +84,15 @@ fun LoginTab(navController: NavController) {
                         loginId.isBlank() || password.isBlank() -> {
                             statusMessage = "ID와 비밀번호를 입력해주세요."
                         }
+
                         else -> {
                             scope.launch {
                                 try {
-                                    val response = RetrofitInstance.api.login(LoginDto(loginId, password))
+                                    val response =
+                                        RetrofitInstance.api.login(LoginDto(loginId, password))
                                     if (response.isSuccessful) {
                                         val tokenInfo = response.body()?.data
                                         if (tokenInfo != null) {
-                                            // AccessToken만 저장
                                             PreferenceManager.saveAccessToken(tokenInfo.accessToken)
                                             statusMessage = "로그인 성공"
                                             navController.navigate("mainScreen") {
@@ -164,17 +165,21 @@ fun LoginTab(navController: NavController) {
                     FindDialog(
                         dialogType = dialogType,
                         onDismissRequest = { showDialog = false },
-                        onSubmit = { emailInput ->
+                        onSubmit = { emailInput, onComplete ->
                             scope.launch {
                                 try {
                                     val response = RetrofitInstance.api.findIdByEmail(FindIdRequest(emailInput))
                                     if (response.isSuccessful) {
-                                        statusMessage = "아이디가 이메일로 전송되었습니다."
+                                        val receivedMessage = response.body() ?: "응답이 비어 있습니다."
+                                        println("아이디 찾기 성공: $receivedMessage")
+                                        // 필요 시 UI 메시지를 표시하거나 처리
                                     } else {
-                                        statusMessage = "아이디 찾기 실패"
+                                        println("아이디 찾기 실패: ${response.code()}")
                                     }
                                 } catch (e: Exception) {
-                                    statusMessage = "오류 발생: ${e.message}"
+                                    println("오류 발생: ${e.message}")
+                                } finally {
+                                    onComplete() // 전송 완료 콜백 호출
                                 }
                             }
                         }
@@ -184,27 +189,27 @@ fun LoginTab(navController: NavController) {
                     FindDialog(
                         dialogType = dialogType,
                         onDismissRequest = { showDialog = false },
-                        onSubmit = { emailInput ->
+                        onSubmit = { emailInput, onComplete ->
                             scope.launch {
                                 try {
-                                    val response = RetrofitInstance.api.resetPassword(
-                                        ResetPasswordRequest(emailInput)
-                                    )
+                                    val response = RetrofitInstance.api.resetPassword(ResetPasswordRequest(emailInput))
                                     if (response.isSuccessful) {
-                                        statusMessage = "새로운 비밀번호가 이메일로 전송되었습니다."
+                                        val receivedMessage = response.body() ?: "응답이 비어 있습니다."
+                                        println("비밀번호 재설정 성공: $receivedMessage")
+                                        // 필요 시 UI 메시지를 표시하거나 처리
                                     } else {
-                                        statusMessage = "비밀번호 재설정 실패"
+                                        println("비밀번호 재설정 실패: ${response.code()}")
                                     }
                                 } catch (e: Exception) {
-                                    statusMessage = "오류 발생: ${e.message}"
+                                    println("오류 발생: ${e.message}")
+                                } finally {
+                                    onComplete() // 전송 완료 콜백 호출
                                 }
                             }
                         }
                     )
                 }
-                else -> { // DialogType.NONE 또는 처리되지 않은 경우
-                    showDialog = false
-                }
+                else -> { showDialog = false }
             }
         }
     }

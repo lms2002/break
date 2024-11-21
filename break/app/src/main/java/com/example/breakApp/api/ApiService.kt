@@ -13,11 +13,11 @@ interface ApiService {
 
     // 아이디 찾기
     @POST("member/find-id")
-    suspend fun findIdByEmail(@Body request: FindIdRequest): Response<BaseResponse<String>>
+    suspend fun findIdByEmail(@Body request: FindIdRequest): Response<String>
 
     // 비밀번호 재설정 요청
     @POST("member/reset-password")
-    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<BaseResponse<String>>
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<String>
 
     // 회원가입
     @POST("member/signup")
