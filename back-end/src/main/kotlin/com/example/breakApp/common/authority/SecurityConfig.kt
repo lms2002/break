@@ -35,7 +35,9 @@ class SecurityConfig(
                     "/api/member/login",
                     "/api/member/verify-email",
                     "/api/member/check-login-id",
-                    "/api/member/request-email-verification"
+                    "/api/member/request-email-verification",
+                    "/api/member/find-id",
+                    "/api/member/reset-password"
                 ).anonymous() // 익명 사용자만 접근 가능
                     .requestMatchers("/api/member/**").authenticated()  // 인증된 사용자만 접근 가능
                     .anyRequest().permitAll()
