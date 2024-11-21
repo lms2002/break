@@ -13,11 +13,11 @@ interface ApiService {
 
     // 아이디 찾기
     @POST("member/find-id")
-    suspend fun findIdByEmail(@Body request: FindIdRequest): Response<BaseResponse<String>>
+    suspend fun findIdByEmail(@Body request: FindIdRequest): Response<String>
 
     // 비밀번호 재설정 요청
     @POST("member/reset-password")
-    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<BaseResponse<String>>
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<String>
 
     // 회원가입
     @POST("member/signup")
@@ -27,7 +27,6 @@ interface ApiService {
     @POST("member/login")
     suspend fun login(@Body loginDto: LoginDto): Response<BaseResponse<TokenInfo>>
 
-    // 내 정보 조회
     @GET("member/info")
     suspend fun getMyInfo(@Header("Authorization") token: String): Response<BaseResponse<MemberDtoResponse>>
 
@@ -62,4 +61,10 @@ interface ApiService {
     // 이메일 인증 코드 확인 요청
     @POST("member/verify-email")
     suspend fun verifyEmailCode(@Body request: VerifyCodeRequest): Response<BaseResponse<Unit>>
+
+    @POST("auth/validate-token")
+    suspend fun validateToken(
+        @Header("Authorization") token: String): Response<BaseResponse<Boolean>>
+
+
 }

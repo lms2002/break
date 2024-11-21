@@ -13,9 +13,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.breakApp.api.RetrofitInstance
+import com.example.breakApp.api.model.FindIdRequest
 import com.example.breakApp.api.model.LoginDto
+import com.example.breakApp.api.model.ResetPasswordRequest
 import com.example.breakApp.jetpack.tools.DialogType
 import com.example.breakApp.jetpack.tools.FindDialog
+import com.example.breakApp.tools.PreferenceManager
 import kotlinx.coroutines.launch
 
 @Composable
@@ -24,7 +27,7 @@ fun LoginTab(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var dialogType by remember { mutableStateOf(DialogType.NONE) }
-    var statusMessage by remember { mutableStateOf("") } // 상태 메시지 변수 추가
+    var statusMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
     Box(
@@ -40,7 +43,6 @@ fun LoginTab(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // 상태 메시지 표시: 아이디 입력 칸 상단에 배치
             if (statusMessage.isNotBlank()) {
                 Text(
                     text = statusMessage,
@@ -72,7 +74,7 @@ fun LoginTab(navController: NavController) {
                     .padding(vertical = 4.dp)
                     .background(Color.Gray, shape = MaterialTheme.shapes.small)
                     .padding(12.dp),
-                visualTransformation = PasswordVisualTransformation() // 비밀번호 가리기
+                visualTransformation = PasswordVisualTransformation()
             )
 
             // 로그인 버튼
@@ -82,15 +84,16 @@ fun LoginTab(navController: NavController) {
                         loginId.isBlank() || password.isBlank() -> {
                             statusMessage = "ID와 비밀번호를 입력해주세요."
                         }
+
                         else -> {
-                            // Retrofit을 통한 로그인 처리
                             scope.launch {
                                 try {
-                                    val response = RetrofitInstance.api.login(LoginDto(loginId, password))
+                                    val response =
+                                        RetrofitInstance.api.login(LoginDto(loginId, password))
                                     if (response.isSuccessful) {
                                         val tokenInfo = response.body()?.data
                                         if (tokenInfo != null) {
-                                            // 로그인 성공 -> MainScreen으로 이동
+                                            PreferenceManager.saveAccessToken(tokenInfo.accessToken)
                                             statusMessage = "로그인 성공"
                                             navController.navigate("mainScreen") {
                                                 popUpTo("loginTab") { inclusive = true }
@@ -156,12 +159,58 @@ fun LoginTab(navController: NavController) {
             }
         }
 
-        // 다이얼로그 표시
         if (showDialog) {
-            FindDialog(
-                dialogType = dialogType,
-                onDismissRequest = { showDialog = false }
-            )
+            when (dialogType) {
+                DialogType.ID_FIND -> {
+                    FindDialog(
+                        dialogType = dialogType,
+                        onDismissRequest = { showDialog = false },
+                        onSubmit = { emailInput, onComplete ->
+                            scope.launch {
+                                try {
+                                    val response = RetrofitInstance.api.findIdByEmail(FindIdRequest(emailInput))
+                                    if (response.isSuccessful) {
+                                        val receivedMessage = response.body() ?: "응답이 비어 있습니다."
+                                        println("아이디 찾기 성공: $receivedMessage")
+                                        // 필요 시 UI 메시지를 표시하거나 처리
+                                    } else {
+                                        println("아이디 찾기 실패: ${response.code()}")
+                                    }
+                                } catch (e: Exception) {
+                                    println("오류 발생: ${e.message}")
+                                } finally {
+                                    onComplete() // 전송 완료 콜백 호출
+                                }
+                            }
+                        }
+                    )
+                }
+                DialogType.PW_FIND -> {
+                    FindDialog(
+                        dialogType = dialogType,
+                        onDismissRequest = { showDialog = false },
+                        onSubmit = { emailInput, onComplete ->
+                            scope.launch {
+                                try {
+                                    val response = RetrofitInstance.api.resetPassword(ResetPasswordRequest(emailInput))
+                                    if (response.isSuccessful) {
+                                        val receivedMessage = response.body() ?: "응답이 비어 있습니다."
+                                        println("비밀번호 재설정 성공: $receivedMessage")
+                                        // 필요 시 UI 메시지를 표시하거나 처리
+                                    } else {
+                                        println("비밀번호 재설정 실패: ${response.code()}")
+                                    }
+                                } catch (e: Exception) {
+                                    println("오류 발생: ${e.message}")
+                                } finally {
+                                    onComplete() // 전송 완료 콜백 호출
+                                }
+                            }
+                        }
+                    )
+                }
+                else -> { showDialog = false }
+            }
         }
     }
 }

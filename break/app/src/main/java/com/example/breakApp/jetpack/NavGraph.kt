@@ -14,7 +14,7 @@ import com.example.breakApp.jetpack.tools.DailyMemoScreen
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "mainScreen",
+        startDestination = "loginScreen",
         enterTransition = { fadeIn(initialAlpha = 1f) },
         exitTransition = { fadeOut(targetAlpha = 0f) },
         popEnterTransition = { fadeIn(initialAlpha = 1f) },
