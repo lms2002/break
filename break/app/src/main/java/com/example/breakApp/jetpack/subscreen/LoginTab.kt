@@ -165,49 +165,43 @@ fun LoginTab(navController: NavController) {
                     FindDialog(
                         dialogType = dialogType,
                         onDismissRequest = { showDialog = false },
-                        onSubmit = { emailInput, onComplete ->
+                        onSubmit = { emailInput ->
                             scope.launch {
                                 try {
                                     val response = RetrofitInstance.api.findIdByEmail(FindIdRequest(emailInput))
                                     if (response.isSuccessful) {
-                                        val receivedMessage = response.body() ?: "응답이 비어 있습니다."
-                                        println("아이디 찾기 성공: $receivedMessage")
-                                        // 필요 시 UI 메시지를 표시하거나 처리
+                                        println("아이디 찾기 성공: ${response.body()}")
                                     } else {
                                         println("아이디 찾기 실패: ${response.code()}")
                                     }
                                 } catch (e: Exception) {
                                     println("오류 발생: ${e.message}")
-                                } finally {
-                                    onComplete() // 전송 완료 콜백 호출
                                 }
                             }
                         }
                     )
+
                 }
                 DialogType.PW_FIND -> {
                     FindDialog(
                         dialogType = dialogType,
                         onDismissRequest = { showDialog = false },
-                        onSubmit = { emailInput, onComplete ->
+                        onSubmit = { emailInput ->
                             scope.launch {
                                 try {
-                                    val response = RetrofitInstance.api.resetPassword(ResetPasswordRequest(emailInput))
+                                    val response = RetrofitInstance.api.findIdByEmail(FindIdRequest(emailInput))
                                     if (response.isSuccessful) {
-                                        val receivedMessage = response.body() ?: "응답이 비어 있습니다."
-                                        println("비밀번호 재설정 성공: $receivedMessage")
-                                        // 필요 시 UI 메시지를 표시하거나 처리
+                                        println("아이디 찾기 성공: ${response.body()}")
                                     } else {
-                                        println("비밀번호 재설정 실패: ${response.code()}")
+                                        println("아이디 찾기 실패: ${response.code()}")
                                     }
                                 } catch (e: Exception) {
                                     println("오류 발생: ${e.message}")
-                                } finally {
-                                    onComplete() // 전송 완료 콜백 호출
                                 }
                             }
                         }
                     )
+
                 }
                 else -> { showDialog = false }
             }
