@@ -11,11 +11,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.breakApp.R
+import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.jetpack.tools.BottomNavigationBar
+import com.example.breakApp.tools.PreferenceManager
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController, selectedItemIndex: Int) {
+    // 사용자 이름을 저장할 상태
+    var userName by remember { mutableStateOf("로딩 중...") }
+    val scope = rememberCoroutineScope()
+
+    // 사용자 이름 로드
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                val token = PreferenceManager.getAccessToken()
+                if (!token.isNullOrEmpty()) {
+                    val response = RetrofitInstance.api.getMyInfo("Bearer $token")
+                    if (response.isSuccessful && response.body()?.data != null) {
+                        userName = response.body()?.data?.userName ?: "알 수 없음"
+                    } else {
+                        userName = "정보를 불러올 수 없습니다."
+                    }
+                } else {
+                    userName = "로그인이 필요합니다."
+                }
+            } catch (e: Exception) {
+                userName = "오류 발생: ${e.message}"
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -66,7 +94,7 @@ fun ProfileScreen(navController: NavController, selectedItemIndex: Int) {
                     modifier = Modifier.size(48.dp)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(text = "오덕춘", style = MaterialTheme.typography.titleLarge)
+                Text(text = userName, style = MaterialTheme.typography.titleLarge)
             }
 
             // 메뉴 항목

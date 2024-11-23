@@ -1,5 +1,6 @@
 package com.example.breakApp.jetpack.subscreen
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
@@ -81,6 +82,8 @@ fun LoginTab(navController: NavController) {
             // 로그인 버튼
             Button(
                 onClick = {
+                    val token = PreferenceManager.getAccessToken()
+                    Log.d("Debug", "AccessToken: $token")
                     when {
                         loginId.isBlank() || password.isBlank() -> {
                             statusMessage = "ID와 비밀번호를 입력해주세요."

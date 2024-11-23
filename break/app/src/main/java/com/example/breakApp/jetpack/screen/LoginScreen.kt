@@ -15,9 +15,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.breakApp.R
+import com.example.breakApp.tools.PreferenceManager
 
 @Composable
 fun LoginScreen(navController: NavController) {
+    LaunchedEffect(Unit) {
+        PreferenceManager.clearAccessToken()
+        println("AccessToken이 초기화되었습니다.")
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +41,8 @@ fun LoginScreen(navController: NavController) {
             Image(
                 painter = painterResource(id = R.drawable.ic_setting),
                 contentDescription = "Logo",
-                modifier = Modifier.size(60.dp)
+                modifier = Modifier
+                    .size(60.dp)
             )
         }
 
