@@ -1,11 +1,10 @@
 package com.example.breakApp.routine.controller
 
-import com.example.breakApp.routine.dto.CreateRoutineDto
-import com.example.breakApp.routine.dto.RoutineResponseDto
+import com.example.breakApp.routine.dto.RoutineDto
 import com.example.breakApp.routine.service.RoutineService
-import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("/api/routines")
@@ -16,19 +15,17 @@ class RoutineController(
     // 새로운 루틴 생성
     @PostMapping
     fun createRoutine(
-        @RequestBody @Valid createRoutineDto: CreateRoutineDto,
+        @RequestBody @Valid routineDto: RoutineDto,
         @RequestHeader("Authorization") token: String
-    ): ResponseEntity<RoutineResponseDto> {
-        val jwtToken = extractBearerToken(token)
-        val createdRoutine = routineService.createRoutine(createRoutineDto, jwtToken)
+    ): ResponseEntity<RoutineDto> {
+        val createdRoutine = routineService.createRoutine(routineDto, extractBearerToken(token))
         return ResponseEntity.ok(createdRoutine)
     }
 
     // 사용자의 모든 루틴 조회
     @GetMapping
-    fun getRoutineList(@RequestHeader("Authorization") token: String): ResponseEntity<List<RoutineResponseDto>> {
-        val jwtToken = extractBearerToken(token)
-        val routines = routineService.getRoutineList(jwtToken)
+    fun getRoutineList(@RequestHeader("Authorization") token: String): ResponseEntity<List<RoutineDto>> {
+        val routines = routineService.getRoutineList(extractBearerToken(token))
         return ResponseEntity.ok(routines)
     }
 
@@ -37,21 +34,19 @@ class RoutineController(
     fun getRoutineById(
         @PathVariable routineId: Long,
         @RequestHeader("Authorization") token: String
-    ): ResponseEntity<RoutineResponseDto> {
-        val jwtToken = extractBearerToken(token)
-        val routine = routineService.getRoutineById(routineId, jwtToken)
+    ): ResponseEntity<RoutineDto> {
+        val routine = routineService.getRoutineById(routineId, extractBearerToken(token))
         return ResponseEntity.ok(routine)
     }
 
-    // 루틴 이름 및 운동 목록 업데이트 (운동 갱신 기능 포함)
+    // 루틴 업데이트
     @PutMapping("/{routineId}")
     fun updateRoutine(
         @PathVariable routineId: Long,
-        @RequestBody updateDto: CreateRoutineDto,
+        @RequestBody @Valid updatedRoutineDto: RoutineDto,
         @RequestHeader("Authorization") token: String
-    ): ResponseEntity<RoutineResponseDto> {
-        val jwtToken = extractBearerToken(token)
-        val updatedRoutine = routineService.updateRoutineExercises(routineId, updateDto, jwtToken)
+    ): ResponseEntity<RoutineDto> {
+        val updatedRoutine = routineService.updateRoutine(routineId, updatedRoutineDto, extractBearerToken(token))
         return ResponseEntity.ok(updatedRoutine)
     }
 
@@ -60,17 +55,11 @@ class RoutineController(
     fun deleteRoutine(
         @PathVariable routineId: Long,
         @RequestHeader("Authorization") token: String
-    ): ResponseEntity<String> {
-        val jwtToken = extractBearerToken(token)
-
-        // 삭제 전에 루틴 이름 조회
-        val routineName = routineService.getRoutineById(routineId, jwtToken).name
-
-        // 루틴 삭제
-        routineService.deleteRoutine(routineId, jwtToken)
-
-        return ResponseEntity.ok("\"$routineName\" 루틴이 삭제되었습니다.")
+    ): ResponseEntity<Unit> {
+        routineService.deleteRoutine(routineId, extractBearerToken(token))
+        return ResponseEntity.noContent().build()
     }
+
 
     // Authorization 헤더에서 Bearer 접두사 제거
     private fun extractBearerToken(header: String): String {
@@ -79,4 +68,6 @@ class RoutineController(
         }
         throw IllegalArgumentException("Invalid Authorization header format")
     }
+
+
 }
