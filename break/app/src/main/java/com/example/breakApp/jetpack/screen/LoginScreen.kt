@@ -15,26 +15,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.breakApp.R
-import com.example.breakApp.api.RetrofitInstance
-import com.example.breakApp.tools.PreferenceManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    var skipValidation by remember { mutableStateOf(false) }
-
-    // 앱 시작 시 토큰 유효성 검사
-    LaunchedEffect(skipValidation) {
-        if (!skipValidation) {
-            checkTokenAndUserValidity(navController, onValidationSkipped = {
-                skipValidation = true
-            })
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -59,7 +42,6 @@ fun LoginScreen(navController: NavController) {
         // 로그인 버튼
         Button(
             onClick = {
-                skipValidation = true
                 navController.navigate("loginTab")
             },
             modifier = Modifier
@@ -75,7 +57,6 @@ fun LoginScreen(navController: NavController) {
         // 회원가입 버튼
         Button(
             onClick = {
-                skipValidation = true
                 navController.navigate("signUpTab")
             },
             modifier = Modifier
@@ -86,59 +67,6 @@ fun LoginScreen(navController: NavController) {
             colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
         ) {
             Text(text = "회원가입", color = Color.White)
-        }
-    }
-}
-
-/**
- * 토큰 및 사용자 정보를 확인하고 적절히 화면 전환
- */
-private fun checkTokenAndUserValidity(
-    navController: NavController,
-    onValidationSkipped: () -> Unit
-) {
-    CoroutineScope(Dispatchers.IO).launch {
-        try {
-            val token = PreferenceManager.getAccessToken()
-
-            if (token.isNullOrEmpty()) {
-                // 토큰이 없으면 로그인 화면 유지
-                withContext(Dispatchers.Main) {
-                    onValidationSkipped()
-                }
-                return@launch
-            }
-
-            // 토큰 유효성 검사
-            val tokenResponse = RetrofitInstance.api.validateToken("Bearer $token")
-            if (tokenResponse.isSuccessful && tokenResponse.body()?.data == true) {
-                // 사용자 정보 확인
-                val userResponse = RetrofitInstance.api.getMyInfo("Bearer $token")
-                withContext(Dispatchers.Main) {
-                    if (userResponse.isSuccessful && userResponse.body()?.data != null) {
-                        // 사용자 정보가 존재하면 MainScreen으로 이동
-                        navController.navigate("mainScreen") {
-                            popUpTo("loginScreen") { inclusive = true }
-                        }
-                    } else {
-                        // 사용자 정보가 없으면 토큰 삭제 후 LoginScreen 유지
-                        PreferenceManager.clearAccessToken()
-                        onValidationSkipped()
-                    }
-                }
-            } else {
-                // 토큰이 유효하지 않으면 토큰 삭제 후 LoginScreen 유지
-                PreferenceManager.clearAccessToken()
-                withContext(Dispatchers.Main) {
-                    onValidationSkipped()
-                }
-            }
-        } catch (e: Exception) {
-            // 예외 발생 시 토큰 삭제 후 LoginScreen 유지
-            PreferenceManager.clearAccessToken()
-            withContext(Dispatchers.Main) {
-                onValidationSkipped()
-            }
         }
     }
 }

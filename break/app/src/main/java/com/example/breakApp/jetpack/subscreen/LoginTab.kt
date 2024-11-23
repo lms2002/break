@@ -12,6 +12,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.breakApp.MyApplication
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.FindIdRequest
 import com.example.breakApp.api.model.LoginDto
@@ -84,7 +85,9 @@ fun LoginTab(navController: NavController) {
                         loginId.isBlank() || password.isBlank() -> {
                             statusMessage = "ID와 비밀번호를 입력해주세요."
                         }
-
+                        loginId.length < 3 || password.length < 6 -> {
+                            statusMessage = "ID는 3자 이상, 비밀번호는 6자 이상이어야 합니다."
+                        }
                         else -> {
                             scope.launch {
                                 try {
@@ -93,19 +96,21 @@ fun LoginTab(navController: NavController) {
                                     if (response.isSuccessful) {
                                         val tokenInfo = response.body()?.data
                                         if (tokenInfo != null) {
+                                            // AccessToken 저장 (PreferenceManager 사용)
                                             PreferenceManager.saveAccessToken(tokenInfo.accessToken)
                                             statusMessage = "로그인 성공"
                                             navController.navigate("mainScreen") {
                                                 popUpTo("loginTab") { inclusive = true }
                                             }
                                         } else {
-                                            statusMessage = "로그인 시도에 실패했습니다."
+                                            statusMessage = "로그인 실패: 서버에서 유효한 토큰을 받지 못했습니다."
                                         }
                                     } else {
-                                        statusMessage = "로그인 실패: ${response.code()}"
+                                        statusMessage = "로그인 실패: ${response.code()} - ${response.errorBody()?.string()}"
                                     }
                                 } catch (e: Exception) {
-                                    statusMessage = "오류 발생: ${e.message}"
+                                    statusMessage = "로그인 중 오류가 발생했습니다. 네트워크를 확인해주세요."
+                                    e.printStackTrace()
                                 }
                             }
                         }
@@ -180,7 +185,6 @@ fun LoginTab(navController: NavController) {
                             }
                         }
                     )
-
                 }
                 DialogType.PW_FIND -> {
                     FindDialog(
@@ -201,7 +205,6 @@ fun LoginTab(navController: NavController) {
                             }
                         }
                     )
-
                 }
                 else -> { showDialog = false }
             }
