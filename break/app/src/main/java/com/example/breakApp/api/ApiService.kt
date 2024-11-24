@@ -47,10 +47,6 @@ interface ApiService {
     @POST("inbody")
     suspend fun createInBody(@Body createInBodyDto: CreateInBodyDto): Response<BaseResponse<InBodyResponse>>
 
-    // 특정 인바디 데이터 조회 (ID 기반)
-    @GET("inbody/{id}")
-    suspend fun getInBodyById(@Path("id") id: Long): Response<BaseResponse<InBodyResponse>>
-
     // 사용자 전체 인바디 데이터 조회
     @GET("inbody")
     suspend fun getInBodyList(): Response<BaseResponse<List<InBodyResponse>>>

@@ -14,11 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.example.breakApp.R
 import com.example.breakApp.api.ApiService
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.CreateInBodyDto
@@ -58,7 +60,7 @@ fun HistoryBody(navController: NavController) {
     ) {
 
         // 날짜 선택 TextField
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
@@ -66,12 +68,29 @@ fun HistoryBody(navController: NavController) {
                     showCalendar = true // 캘린더 표시
                 }
                 .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = if (selectedDate.isNotEmpty()) selectedDate else "날짜 선택 (YYYY-MM-DD)",
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (selectedDate.isNotEmpty()) Color.Black else Color.Gray
+            )
+            Spacer(modifier = Modifier.weight(1f)) // Text와 Icon 사이에 공간 추가
+            Icon(
+                painter = painterResource(id = R.drawable.ic_edit), // 연필 모양 아이콘 리소스
+                contentDescription = "Edit Date",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable {
+                        if (selectedDate.isNotEmpty()) {
+                            // 선택된 날짜를 포함하여 DetailInBody로 이동
+                            navController.navigate("detailInBody/$selectedDate")
+                        } else {
+                            errorMessage = "날짜를 먼저 선택하세요."
+                        }
+                    }
             )
         }
 
@@ -172,6 +191,7 @@ fun HistoryBody(navController: NavController) {
 
                 val createInBodyDto = CreateInBodyDto(
                     measurementDate = measurementDate, // String으로 전달
+                    age = age.toIntOrNull(),
                     weight = weight.toDoubleOrNull(),
                     bodyFatPercentage = bodyFat.toDoubleOrNull(),
                     muscleMass = skeletalMuscle.toDoubleOrNull(),

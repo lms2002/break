@@ -30,6 +30,10 @@ fun NavGraph(navController: NavHostController) {
         composable("settings") { SettingTab(navController) }
         composable("loginTab") { LoginTab(navController) }
         composable("signupTab") { SignUpTab(navController) }
+        composable("detailInBody/{selectedDate}") { backStackEntry ->
+            val selectedDate = backStackEntry.arguments?.getString("selectedDate") ?: ""
+            DetailInBody(navController = navController, selectedDate = selectedDate)
+        }
         composable("dailyMemo/{selectedDate}") { backStackEntry ->
             val selectedDate = backStackEntry.arguments?.getString("selectedDate")
             DailyMemoScreen(navController = navController, selectedDate = selectedDate ?: "")

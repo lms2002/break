@@ -72,6 +72,7 @@ data class RefreshTokenRequest(
 // 인바디 생성 요청 DTO
 data class CreateInBodyDto(
     val measurementDate: String?,
+    val age: Int?,
     val weight: Double?,
     val bodyFatPercentage: Double?,
     val muscleMass: Double?,
@@ -80,22 +81,27 @@ data class CreateInBodyDto(
     val basalMetabolicRate: Double? // 기초 대사량
 )
 
+data class MemberResponseDto(
+    val userName: String,  // 사용자 이름
+    val gender: String     // 사용자 성별
+)
+
 // 인바디 응답 DTO
 data class InBodyResponse(
     val inBodyId: Long,
-    val measurementDate: LocalDate?,
+    val member: MemberResponseDto,
+    val measurementDate: String?,
+    val age: Int?,
+    val height: Float?,
     val weight: Double?,
     val bodyFatPercentage: Double?,
     val muscleMass: Double?,
-    val bmi: Double?,
-    val visceralFatLevel: Double?, // 내장 지방 수준
-    val basalMetabolicRate: Double?, // 기초 대사량
-    val userId: Long // 소유 사용자 ID
+    val bmi: Double?
 )
 
 // 인바디 수정 요청 DTO
 data class UpdateInBodyDto(
-    val measurementDate: LocalDate?,
+    val measurementDate: String?,
     val weight: Double?,
     val bodyFatPercentage: Double?,
     val muscleMass: Double?,
