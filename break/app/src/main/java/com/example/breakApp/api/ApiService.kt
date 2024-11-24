@@ -42,25 +42,40 @@ interface ApiService {
     @GET("member/verify-email")
     suspend fun verifyEmail(@Query("email") email: String, @Query("token") token: String): Response<BaseResponse<Unit>>
 
-    // 인바디 생성
-    @POST("inbody/create")
-    suspend fun createInBody(@Body createInBodyDto: CreateInBodyDto, @Header("Authorization") token: String): Response<BaseResponse<InBodyResponse>>
+    // 인바디 데이터 생성
+    @POST("inbody")
+    suspend fun createInBody(
+        @Body createInBodyDto: CreateInBodyDto,
+        @Header("Authorization") token: String
+    ): Response<BaseResponse<InBodyResponse>>
 
-    // 인바디 목록 조회
-    @GET("inbody/list")
-    suspend fun getInBodyList(@Header("Authorization") token: String): Response<BaseResponse<List<InBodyResponse>>>
+    // 특정 인바디 데이터 조회 (ID 기반)
+    @GET("inbody/{id}")
+    suspend fun getInBodyById(
+        @Path("id") id: Long,
+        @Header("Authorization") token: String
+    ): Response<BaseResponse<InBodyResponse>>
 
-    // 인바디 업데이트
-    @PUT("inbody/update/{id}")
-    suspend fun updateInBody(@Path("id") id: Long, @Body updateDto: CreateInBodyDto, @Header("Authorization") token: String): Response<BaseResponse<InBodyResponse>>
+    // 사용자 전체 인바디 데이터 조회
+    @GET("inbody")
+    suspend fun getInBodyList(
+        @Header("Authorization") token: String
+    ): Response<BaseResponse<List<InBodyResponse>>>
 
-    // 인바디 삭제
-    @DELETE("inbody/delete/{id}")
-    suspend fun deleteInBody(@Path("id") id: Long, @Header("Authorization") token: String): Response<BaseResponse<Unit>>
+    // 인바디 데이터 수정
+    @PUT("inbody/{id}")
+    suspend fun updateInBody(
+        @Path("id") id: Long,
+        @Body updateInBodyDto: UpdateInBodyDto,
+        @Header("Authorization") token: String
+    ): Response<BaseResponse<InBodyResponse>>
 
-    // 이메일 인증 코드 확인 요청
-    @POST("member/verify-email")
-    suspend fun verifyEmailCode(@Body request: VerifyCodeRequest): Response<BaseResponse<Unit>>
+    // 인바디 데이터 삭제
+    @DELETE("inbody/{id}")
+    suspend fun deleteInBody(
+        @Path("id") id: Long,
+        @Header("Authorization") token: String
+    ): Response<BaseResponse<Unit>>
 
     @POST("auth/validate-token")
     suspend fun validateToken(

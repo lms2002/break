@@ -76,8 +76,8 @@ data class CreateInBodyDto(
     val bodyFatPercentage: Double?,
     val muscleMass: Double?,
     val bmi: Double?,
-    val visceralFatLevel: Double?,
-    val basalMetabolicRate: Double?
+    val visceralFatLevel: Double?, // 내장 지방 수준
+    val basalMetabolicRate: Double? // 기초 대사량
 )
 
 // 인바디 응답 DTO
@@ -88,9 +88,22 @@ data class InBodyResponse(
     val bodyFatPercentage: Double?,
     val muscleMass: Double?,
     val bmi: Double?,
-    val visceralFatLevel: Double?,
-    val basalMetabolicRate: Double?
+    val visceralFatLevel: Double?, // 내장 지방 수준
+    val basalMetabolicRate: Double?, // 기초 대사량
+    val userId: Long // 소유 사용자 ID
 )
+
+// 인바디 수정 요청 DTO
+data class UpdateInBodyDto(
+    val measurementDate: LocalDate?,
+    val weight: Double?,
+    val bodyFatPercentage: Double?,
+    val muscleMass: Double?,
+    val bmi: Double?,
+    val visceralFatLevel: Double?, // 내장 지방 수준
+    val basalMetabolicRate: Double? // 기초 대사량
+)
+
 
 // 이메일 인증 코드 확인 요청 DTO
 data class VerifyCodeRequest(
