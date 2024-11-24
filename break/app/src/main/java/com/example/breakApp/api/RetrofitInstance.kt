@@ -13,24 +13,14 @@ object RetrofitInstance {
     private val client by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
-                val requestBuilder = chain.request().newBuilder()
-                val url = chain.request().url.toString()
-
-                // 특정 요청에 Authorization 헤더 추가
                 val token = PreferenceManager.getAccessToken()
+                Log.d("RetrofitInstance", "Retrieved Token: $token")
+                val requestBuilder = chain.request().newBuilder()
                 if (!token.isNullOrEmpty()) {
                     requestBuilder.addHeader("Authorization", "Bearer $token")
-                } else {
-                    Log.d("RetrofitInterceptor", "AccessToken is null or empty, skipping Authorization header.")
                 }
-
                 val request = requestBuilder.build()
-                Log.d("RetrofitInterceptor", "Request URL: ${request.url}")
-                Log.d("RetrofitInterceptor", "Request Headers: ${request.headers}")
-
-                val response = chain.proceed(request)
-                Log.d("RetrofitInterceptor", "Response Code: ${response.code}")
-                response
+                chain.proceed(request)
             }
             .build()
     }

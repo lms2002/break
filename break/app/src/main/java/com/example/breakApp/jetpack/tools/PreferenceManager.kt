@@ -1,16 +1,19 @@
 package com.example.breakApp.tools
 
+import android.util.Log
 import com.example.breakApp.MyApplication
 
 object PreferenceManager {
     fun saveAccessToken(accessToken: String) {
+        Log.d("PreferenceManager", "Saving AccessToken: $accessToken")
         val editor = MyApplication.getSharedPreferences().edit()
-        editor.putString("accessToken", accessToken)
-        editor.apply()
+        editor.putString("accessToken", accessToken).apply()
     }
 
     fun getAccessToken(): String? {
-        return MyApplication.getSharedPreferences().getString("accessToken", null)
+        val token = MyApplication.getSharedPreferences().getString("accessToken", null)
+        Log.d("PreferenceManager", "Retrieved AccessToken: $token")
+        return token
     }
 
     fun clearAccessToken() {

@@ -27,12 +27,13 @@ interface ApiService {
     @POST("member/login")
     suspend fun login(@Body loginDto: LoginDto): Response<BaseResponse<TokenInfo>>
 
+    // 내 정보 조회
     @GET("member/info")
-    suspend fun getMyInfo(@Header("Authorization") token: String): Response<BaseResponse<MemberDtoResponse>>
+    suspend fun getMyInfo(): Response<BaseResponse<MemberDtoResponse>>
 
     // 내 정보 수정
     @PUT("member/info")
-    suspend fun updateMyInfo(@Body updateDtoRequest: UpdateDtoRequest, @Header("Authorization") token: String): Response<BaseResponse<Unit>>
+    suspend fun updateMyInfo(@Body updateDtoRequest: UpdateDtoRequest): Response<BaseResponse<Unit>>
 
     // 이메일 인증 요청
     @POST("member/request-email-verification")
@@ -44,42 +45,28 @@ interface ApiService {
 
     // 인바디 데이터 생성
     @POST("inbody")
-    suspend fun createInBody(
-        @Body createInBodyDto: CreateInBodyDto,
-        @Header("Authorization") token: String
-    ): Response<BaseResponse<InBodyResponse>>
+    suspend fun createInBody(@Body createInBodyDto: CreateInBodyDto): Response<BaseResponse<InBodyResponse>>
 
     // 특정 인바디 데이터 조회 (ID 기반)
     @GET("inbody/{id}")
-    suspend fun getInBodyById(
-        @Path("id") id: Long,
-        @Header("Authorization") token: String
-    ): Response<BaseResponse<InBodyResponse>>
+    suspend fun getInBodyById(@Path("id") id: Long): Response<BaseResponse<InBodyResponse>>
 
     // 사용자 전체 인바디 데이터 조회
     @GET("inbody")
-    suspend fun getInBodyList(
-        @Header("Authorization") token: String
-    ): Response<BaseResponse<List<InBodyResponse>>>
+    suspend fun getInBodyList(): Response<BaseResponse<List<InBodyResponse>>>
 
     // 인바디 데이터 수정
     @PUT("inbody/{id}")
     suspend fun updateInBody(
         @Path("id") id: Long,
-        @Body updateInBodyDto: UpdateInBodyDto,
-        @Header("Authorization") token: String
+        @Body updateInBodyDto: CreateInBodyDto
     ): Response<BaseResponse<InBodyResponse>>
 
     // 인바디 데이터 삭제
     @DELETE("inbody/{id}")
-    suspend fun deleteInBody(
-        @Path("id") id: Long,
-        @Header("Authorization") token: String
-    ): Response<BaseResponse<Unit>>
+    suspend fun deleteInBody(@Path("id") id: Long): Response<BaseResponse<Unit>>
 
+    // 토큰 검증
     @POST("auth/validate-token")
-    suspend fun validateToken(
-        @Header("Authorization") token: String): Response<BaseResponse<Boolean>>
-
-
+    suspend fun validateToken(): Response<BaseResponse<Boolean>>
 }

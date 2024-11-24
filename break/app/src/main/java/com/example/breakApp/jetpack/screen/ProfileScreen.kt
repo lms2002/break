@@ -29,7 +29,7 @@ fun ProfileScreen(navController: NavController, selectedItemIndex: Int) {
             try {
                 val token = PreferenceManager.getAccessToken()
                 if (!token.isNullOrEmpty()) {
-                    val response = RetrofitInstance.api.getMyInfo("Bearer $token")
+                    val response = RetrofitInstance.api.getMyInfo()
                     if (response.isSuccessful && response.body()?.data != null) {
                         userName = response.body()?.data?.userName ?: "알 수 없음"
                     } else {

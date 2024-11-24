@@ -1,3 +1,4 @@
+
 package com.example.breakApp.jetpack.subscreen
 
 import android.util.Log
@@ -18,7 +19,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.example.breakApp.api.ApiService
+import com.example.breakApp.api.RetrofitInstance
+import com.example.breakApp.api.model.CreateInBodyDto
 import com.example.breakApp.jetpack.tools.Calendar
+import com.example.breakApp.tools.PreferenceManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun HistoryBody(navController: NavController) {
@@ -26,6 +37,7 @@ fun HistoryBody(navController: NavController) {
     var selectedDate by remember { mutableStateOf("") }
     var showCalendar by remember { mutableStateOf(false) }
 
+    // 입력값 상태 관리
     var age by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
@@ -33,10 +45,14 @@ fun HistoryBody(navController: NavController) {
     var bodyFat by remember { mutableStateOf("") }
     var bmi by remember { mutableStateOf("") }
 
+    // 상태 관리 (로딩 및 에러 메시지)
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()) // 스크롤 가능하도록 수정
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -59,7 +75,7 @@ fun HistoryBody(navController: NavController) {
             )
         }
 
-// 캘린더 표시
+        // 캘린더 표시
         if (showCalendar) {
             Dialog(
                 onDismissRequest = { showCalendar = false } // 캘린더 외부 클릭 시 닫기
@@ -67,7 +83,7 @@ fun HistoryBody(navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f)) // 반투명 배경
+                        .background(Color.Black.copy(alpha = 0.5f))
                 ) {
                     Surface(
                         modifier = Modifier
@@ -100,10 +116,6 @@ fun HistoryBody(navController: NavController) {
             }
         }
 
-
-
-
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // 입력 필드 섹션
@@ -135,8 +147,50 @@ fun HistoryBody(navController: NavController) {
         // 저장 버튼
         Button(
             onClick = {
-                // 저장 로직
-                navController.navigate("saveConfirmation") // 저장 후 확인 화면으로 이동
+                isLoading = true
+                errorMessage = null
+
+                // PreferenceManager를 사용해 Access Token 가져오기
+                val token = PreferenceManager.getAccessToken()
+                Log.d("JWT Token", "Bearer $token")
+                if (token == null) {
+                    errorMessage = "Access token not found. Please log in again."
+                    isLoading = false
+                    return@Button
+                }
+
+                val measurementDate = selectedDate.takeIf { it.isNotEmpty() }?.let {
+                    try {
+                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val parsedDate = sdf.parse(it) // Date 객체로 변환
+                        sdf.format(parsedDate) // 다시 yyyy-MM-dd 형식의 String으로 변환
+                    } catch (e: Exception) {
+                        errorMessage = "Invalid date format"
+                        null
+                    }
+                }
+
+                val createInBodyDto = CreateInBodyDto(
+                    measurementDate = measurementDate, // String으로 전달
+                    weight = weight.toDoubleOrNull(),
+                    bodyFatPercentage = bodyFat.toDoubleOrNull(),
+                    muscleMass = skeletalMuscle.toDoubleOrNull(),
+                    bmi = bmi.toDoubleOrNull(),
+                    visceralFatLevel = null,
+                    basalMetabolicRate = null
+                )
+
+                saveInBody(token, createInBodyDto, {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        isLoading = false
+                        navController.navigate("saveConfirmation")
+                    }
+                }, { error ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        isLoading = false
+                        errorMessage = error
+                    }
+                })
             },
             modifier = Modifier
                 .fillMaxWidth(0.8f)
@@ -144,6 +198,43 @@ fun HistoryBody(navController: NavController) {
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
         ) {
             Text(text = "저장", color = Color.White, fontSize = 18.sp)
+        }
+
+        // 로딩 상태 표시
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+        }
+
+        // 에러 메시지 표시
+        errorMessage?.let {
+            Text(text = it, color = Color.Red, modifier = Modifier.padding(top = 16.dp))
+        }
+    }
+}
+
+fun saveInBody(
+    token: String,
+    createInBodyDto: CreateInBodyDto,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+) {
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = RetrofitInstance.api.createInBody(createInBodyDto)
+            if (response.isSuccessful) {
+                withContext(Dispatchers.Main) {
+                    onSuccess() // 메인 스레드에서 성공 콜백 호출
+                }
+            } else {
+                val errorMessage = response.errorBody()?.string() ?: "Unknown error occurred"
+                withContext(Dispatchers.Main) {
+                    onError("Failed to save: $errorMessage") // 메인 스레드에서 에러 처리
+                }
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                onError("An error occurred: ${e.localizedMessage}") // 메인 스레드에서 에러 처리
+            }
         }
     }
 }
@@ -184,3 +275,4 @@ fun UserInputBox(label: String, value: String, unit: String, onValueChange: (Str
         }
     }
 }
+

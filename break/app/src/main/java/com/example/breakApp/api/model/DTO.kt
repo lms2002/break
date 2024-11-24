@@ -71,7 +71,7 @@ data class RefreshTokenRequest(
 
 // 인바디 생성 요청 DTO
 data class CreateInBodyDto(
-    val measurementDate: LocalDate?,
+    val measurementDate: String?,
     val weight: Double?,
     val bodyFatPercentage: Double?,
     val muscleMass: Double?,
