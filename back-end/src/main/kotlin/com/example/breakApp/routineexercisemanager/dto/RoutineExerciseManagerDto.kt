@@ -1,4 +1,4 @@
-package com.example.breakApp.RoutineExerciseManager.dto
+package com.example.breakApp.routineexercisemanager.dto
 
 import java.time.LocalDateTime
 
