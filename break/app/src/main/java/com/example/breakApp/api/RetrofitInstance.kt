@@ -17,12 +17,11 @@ object RetrofitInstance {
                 val url = chain.request().url.toString()
 
                 // 특정 요청에 Authorization 헤더 추가
-                if (!url.contains("find-id") && !url.contains("reset-password")) {
-                    val token = PreferenceManager.getAccessToken()
-                    Log.d("RetrofitInterceptor", "AccessToken: $token")
-                    if (!token.isNullOrEmpty()) {
-                        requestBuilder.addHeader("Authorization", "Bearer $token")
-                    }
+                val token = PreferenceManager.getAccessToken()
+                if (!token.isNullOrEmpty()) {
+                    requestBuilder.addHeader("Authorization", "Bearer $token")
+                } else {
+                    Log.d("RetrofitInterceptor", "AccessToken is null or empty, skipping Authorization header.")
                 }
 
                 val request = requestBuilder.build()

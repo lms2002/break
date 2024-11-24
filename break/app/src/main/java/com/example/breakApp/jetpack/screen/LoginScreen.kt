@@ -2,6 +2,7 @@ package com.example.breakApp.jetpack.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
@@ -19,7 +20,8 @@ import com.example.breakApp.tools.PreferenceManager
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    LaunchedEffect(Unit) {
+    // 명시적으로 토큰 초기화
+    fun clearToken() {
         PreferenceManager.clearAccessToken()
         println("AccessToken이 초기화되었습니다.")
     }
@@ -43,12 +45,14 @@ fun LoginScreen(navController: NavController) {
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(60.dp)
+                    .clickable { clearToken() } // 클릭 시 토큰 초기화
             )
         }
 
         // 로그인 버튼
         Button(
             onClick = {
+                clearToken() // 로그인 전 기존 토큰 초기화
                 navController.navigate("loginTab")
             },
             modifier = Modifier
