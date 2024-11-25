@@ -62,6 +62,28 @@ interface ApiService {
     @DELETE("inbody/{id}")
     suspend fun deleteInBody(@Path("id") id: Long): Response<BaseResponse<Unit>>
 
+    // 모든 운동 데이터를 가져오는 API
+    @GET("exercises")
+    suspend fun getAllExercises(): Response<List<Exercise>>
+
+    // 이름으로 운동 데이터를 가져오는 API
+    @GET("exercises/{name}")
+    suspend fun getExerciseByName(
+        @Path("name") name: String
+    ): Response<BaseResponse<Exercise>>
+
+    // 카테고리별 운동 데이터를 가져오는 API
+    @GET("exercises/category/{category}")
+    suspend fun getExercisesByCategory(
+        @Path("category") category: String
+    ): Response<List<Exercise>>
+
+    // 타겟 부위별 운동 데이터를 가져오는 API
+    @GET("exercises/target/{targetArea}")
+    suspend fun getExercisesByTargetArea(
+        @Path("targetArea") targetArea: String
+    ): Response<BaseResponse<List<Exercise>>>
+
     // 토큰 검증
     @POST("auth/validate-token")
     suspend fun validateToken(): Response<BaseResponse<Boolean>>
