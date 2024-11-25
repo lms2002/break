@@ -1,5 +1,7 @@
 package com.example.breakApp.set.entity
 
+import com.example.breakApp.exercise.entity.Exercise
+import com.example.breakApp.routine.entity.Routine
 import jakarta.persistence.*
 
 @Entity
@@ -8,13 +10,15 @@ class ExerciseSet(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "set_id")
-    val setId: Long? = null,  // 세트 ID
+    var setId: Long? = null,  // 세트 ID
 
-    @Column(name = "routine_id", nullable = false)
-    val routineId: Long,  // 루틴 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "routine_id", nullable = false)
+    var routine: Routine,  // 루틴 엔티티
 
-    @Column(name = "exercise_id", nullable = false)
-    val exerciseId: Long,  // 운동 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exercise_id", nullable = false)
+    var exercise: Exercise,  // 운동 엔티티
 
     @Column(name = "set_number", nullable = false)
     var setNumber: Int,  // 세트 번호
