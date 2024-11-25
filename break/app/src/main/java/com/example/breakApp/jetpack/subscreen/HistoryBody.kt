@@ -203,7 +203,6 @@ fun HistoryBody(navController: NavController) {
                 saveInBody(token, createInBodyDto, {
                     CoroutineScope(Dispatchers.Main).launch {
                         isLoading = false
-                        navController.navigate("saveConfirmation")
                     }
                 }, { error ->
                     CoroutineScope(Dispatchers.Main).launch {
