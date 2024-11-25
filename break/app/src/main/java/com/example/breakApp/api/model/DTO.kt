@@ -117,6 +117,13 @@ data class VerifyCodeRequest(
     val verificationCode: String  // 6자리 인증 코드
 )
 
+data class Exercise(
+    val name: String,                 // 운동 이름
+    val instructions: List<String>?,  // 운동 설명 (여러 단계로 구성된 리스트)
+    val category: String,             // 운동 카테고리 (기본값: General)
+    val targetArea: String            // 타겟 부위 (기본값: Full Body)
+)
+
 // TokenValidationResponse.kt
 data class TokenValidationResponse(
     val data: Boolean,
