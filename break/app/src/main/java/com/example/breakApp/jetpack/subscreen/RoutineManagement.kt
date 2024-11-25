@@ -20,14 +20,35 @@ import androidx.navigation.NavController
 import com.example.breakApp.R
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.Exercise
+import com.example.breakApp.api.model.RoutineDto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoutineManagement(navController: NavController, routineId: Long, routineName: String) {
     var currentRoutineName by remember { mutableStateOf(routineName) }
+    var newRoutineName by remember { mutableStateOf(routineName) } // 새로운 이름 입력
+    var isEditing by remember { mutableStateOf(false) } // 편집 상태 관리
     var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var userId by remember { mutableStateOf<Long?>(null) } // 사용자 ID 상태
+
+    // 사용자 ID 가져오기
+    LaunchedEffect(Unit) {
+        try {
+            val response = RetrofitInstance.api.getMyInfo()
+            if (response.isSuccessful) {
+                userId = response.body()?.data?.userId
+            } else {
+                errorMessage = "Error fetching user info: ${response.errorBody()?.string()}"
+            }
+        } catch (e: Exception) {
+            errorMessage = "An error occurred: ${e.localizedMessage}"
+        }
+    }
 
     // API 호출: 루틴에 포함된 운동 데이터 가져오기
     LaunchedEffect(routineId) {
@@ -55,19 +76,70 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(
-                            text = "$currentRoutineName 관리",
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        IconButton(onClick = {
-                            // 루틴 이름 편집 로직 (예시)
-                            currentRoutineName = "새 루틴 이름"
-                        }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_setting),
-                                contentDescription = "Edit Routine Name"
+                        if (isEditing) {
+                            // 편집 상태에서는 입력 필드와 확인 버튼 표시
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                TextField(
+                                    value = newRoutineName,
+                                    onValueChange = { newRoutineName = it },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(Color.Transparent) // 배경색을 투명하게 설정
+                                        .padding(8.dp), // 여백 추가
+                                    textStyle = TextStyle(
+                                        color = MaterialTheme.colorScheme.onBackground, // 텍스트 색상 설정
+                                        fontSize = 16.sp // 텍스트 크기 조정
+                                    ),
+                                    colors = TextFieldDefaults.textFieldColors(
+                                        containerColor = Color.Transparent, // 배경 투명
+                                        cursorColor = MaterialTheme.colorScheme.onBackground // 커서 색상
+                                    )
+                                )
+
+                                IconButton(onClick = {
+                                    // 이름 저장 로직
+                                    if (userId != null) {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            try {
+                                                val updatedRoutine = RoutineDto(
+                                                    routineId = routineId,
+                                                    userId = userId!!, // 가져온 사용자 ID 사용
+                                                    name = newRoutineName
+                                                )
+                                                val response = RetrofitInstance.api.updateRoutine(routineId, updatedRoutine)
+                                                if (response.isSuccessful) {
+                                                    currentRoutineName = newRoutineName
+                                                    isEditing = false // 편집 상태 종료
+                                                } else {
+                                                    errorMessage = "Error updating routine: ${response.errorBody()?.string()}"
+                                                }
+                                            } catch (e: Exception) {
+                                                errorMessage = "Error: ${e.localizedMessage}"
+                                            }
+                                        }
+                                    } else {
+                                        errorMessage = "User ID not found"
+                                    }
+                                }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_check),
+                                        contentDescription = "Save"
+                                    )
+                                }
+                            }
+                        } else {
+                            // 기본 상태에서는 제목과 편집 버튼 표시
+                            Text(
+                                text = "$currentRoutineName",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.titleLarge
                             )
+                            IconButton(onClick = { isEditing = true }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_setting), // 편집 아이콘
+                                    contentDescription = "Edit Routine Name"
+                                )
+                            }
                         }
                     }
                 },
