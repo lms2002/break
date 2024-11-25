@@ -28,3 +28,12 @@ data class ExerciseDto(
     // @JsonProperty("target"): API에서 오는 JSON 데이터의 "target" 필드를 targetArea 변수에 매핑합니다.
     // 기본값으로 "Full Body"를 설정하며, 실제 API의 필드 이름이 "target"이 맞는지 확인이 필요합니다.
 )
+
+// 운동 디테일 정보 표시 DTO
+data class ExerciseDetailDto(
+    val exerciseId: Long,
+    val name: String,
+    val description: String?,
+    val category: String,
+    val targetArea: String
+)
