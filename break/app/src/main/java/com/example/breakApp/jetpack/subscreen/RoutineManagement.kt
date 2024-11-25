@@ -18,11 +18,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.breakApp.R
+import com.example.breakApp.api.RetrofitInstance
+import com.example.breakApp.api.model.Exercise
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoutineManagement(navController: NavController, routineName: String) {
+fun RoutineManagement(navController: NavController, routineId: Long, routineName: String) {
     var currentRoutineName by remember { mutableStateOf(routineName) }
+    var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // API 호출: 루틴에 포함된 운동 데이터 가져오기
+    LaunchedEffect(routineId) {
+        try {
+            isLoading = true
+            val response = RetrofitInstance.api.getExercisesByRoutineId(routineId)
+            if (response.isSuccessful) {
+                exercises = response.body() ?: emptyList()
+            } else {
+                errorMessage = "Error: ${response.errorBody()?.string()}"
+            }
+        } catch (e: Exception) {
+            errorMessage = "An error occurred: ${e.localizedMessage}"
+        } finally {
+            isLoading = false
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -39,7 +61,7 @@ fun RoutineManagement(navController: NavController, routineName: String) {
                             style = MaterialTheme.typography.titleLarge
                         )
                         IconButton(onClick = {
-                            // 루틴 이름 편집 로직
+                            // 루틴 이름 편집 로직 (예시)
                             currentRoutineName = "새 루틴 이름"
                         }) {
                             Icon(
@@ -64,32 +86,46 @@ fun RoutineManagement(navController: NavController, routineName: String) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 예시 운동 목록
-            val exampleExercises = listOf("운동 1", "운동 2", "운동 3")
-            exampleExercises.forEach { exercise ->
-                ExerciseInputSection(exercise)
-            }
-
-            // 버튼을 화면 너비에 꽉 차게 배치
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { /* 저장 로직 */ },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("저장", color = Color.White)
+            if (isLoading) {
+                // 로딩 상태
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(8.dp)
+            } else if (errorMessage != null) {
+                // 에러 메시지 표시
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            } else {
+                // 운동 데이터 표시
+                exercises.forEach { exercise ->
+                    ExerciseInputSection(exercise.name)
+                }
+
+                // 버튼을 화면 너비에 꽉 차게 배치
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("취소", color = Color.Black)
+                    Button(
+                        onClick = { /* 저장 로직 */ },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("저장", color = Color.White)
+                    }
+                    Button(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("취소", color = Color.Black)
+                    }
                 }
             }
         }

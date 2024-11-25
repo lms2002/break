@@ -84,6 +84,47 @@ interface ApiService {
         @Path("targetArea") targetArea: String
     ): Response<BaseResponse<List<Exercise>>>
 
+    // Create a new routine
+    @POST("routines")
+    suspend fun createRoutine(
+        @Body routineDto: RoutineDto
+    ): Response<RoutineDto>
+
+    // Get a list of all routines for the user
+    @GET("routines")
+    suspend fun getRoutineList(
+    ): Response<List<RoutineDto>>
+
+    // Get a specific routine by ID
+    @GET("routines/{routineId}")
+    suspend fun getRoutineById(
+        @Path("routineId") routineId: Long
+    ): Response<RoutineDto>
+
+    // Update a routine by ID
+    @PUT("routines/{routineId}")
+    suspend fun updateRoutine(
+        @Path("routineId") routineId: Long,
+        @Body updatedRoutineDto: RoutineDto
+    ): Response<RoutineDto>
+
+    // Delete a routine by ID
+    @DELETE("routines/{routineId}")
+    suspend fun deleteRoutine(
+        @Path("routineId") routineId: Long
+    ): Response<Unit>
+
+    // ApiService.kt
+    @GET("routine-exercise/{routineId}")
+    suspend fun getExercisesByRoutineId(
+        @Path("routineId") routineId: Long
+    ): Response<List<Exercise>>
+
+    @POST("routine-exercise")
+    suspend fun addExercisesToRoutine(
+        @Body request: CreateRoutineExerciseRequest
+    ): Response<Unit>
+
     // 토큰 검증
     @POST("auth/validate-token")
     suspend fun validateToken(): Response<BaseResponse<Boolean>>

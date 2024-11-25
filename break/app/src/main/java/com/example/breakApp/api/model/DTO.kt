@@ -1,6 +1,11 @@
 package com.example.breakApp.api.model
 
+import com.google.gson.annotations.SerializedName
+import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.Date
+import java.util.Locale
 
 // 아이디 찾기 요청 DTO
 data class FindIdRequest(
@@ -118,14 +123,43 @@ data class VerifyCodeRequest(
 )
 
 data class Exercise(
+    val exerciseId: Long,
     val name: String,                 // 운동 이름
     val instructions: List<String>?,  // 운동 설명 (여러 단계로 구성된 리스트)
     val category: String,             // 운동 카테고리 (기본값: General)
     val targetArea: String            // 타겟 부위 (기본값: Full Body)
 )
 
+
+data class RoutineDto(
+    val routineId: Long? = null,
+    val userId: Long,
+    val name: String,
+    val createdAt: String = getCurrentTimestamp(), // String으로 타임스탬프 저장
+    val updatedAt: String = getCurrentTimestamp()
+)
+
+data class CreateRoutineExerciseRequest(
+    @SerializedName("routine_id")
+    val routineId: Long,
+    @SerializedName("exercises")
+    val exercises: List<ExerciseRequest>
+)
+
+data class ExerciseRequest(
+    @SerializedName("exercise_id")
+    val exerciseId: Long
+)
+
+
+
 // TokenValidationResponse.kt
 data class TokenValidationResponse(
     val data: Boolean,
     val message: String
 )
+
+fun getCurrentTimestamp(): String {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+    return dateFormat.format(Date()) // 현재 시간을 포맷
+}

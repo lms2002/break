@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,11 +27,79 @@ import com.example.breakApp.R
 import androidx.navigation.NavController
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.Exercise
+import com.example.breakApp.api.model.RoutineDto
 import com.example.breakApp.jetpack.tools.BottomNavigationBar
+import com.example.breakApp.jetpack.tools.RoutineDialog
+import com.example.breakApp.tools.PreferenceManager
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.breakApp.api.model.CreateRoutineExerciseRequest
+import com.example.breakApp.api.model.ExerciseRequest
+import kotlinx.coroutines.launch
 
 @Composable
 fun CustomRoutine(navController: NavController) {
     var selectedCategory by remember { mutableStateOf("가슴") } // 초기 카테고리
+    var showRoutineDialog by remember { mutableStateOf(true) } // 루틴 선택 다이얼로그 표시 여부
+    var selectedRoutine by remember { mutableStateOf<RoutineDto?>(null) } // 선택된 루틴
+    var userId by remember { mutableStateOf<Long?>(null) }
+
+    // 루틴 초기화 및 생성 확인
+    LaunchedEffect(Unit) {
+        val token = PreferenceManager.getAccessToken()
+        if (token != null) {
+            try {
+                // 사용자 정보 가져오기
+                val response = RetrofitInstance.api.getMyInfo()
+                if (response.isSuccessful) {
+                    userId = response.body()?.data?.userId
+                    println("User ID fetched: $userId")
+                } else {
+                    println("Error fetching user info: ${response.errorBody()?.string()}")
+                    return@LaunchedEffect
+                }
+
+                // 사용자 정보가 없으면 중단
+                if (userId == null) {
+                    println("User ID not found")
+                    return@LaunchedEffect
+                }
+
+                // 루틴 목록 가져오기
+                val routinesResponse = RetrofitInstance.api.getRoutineList()
+                val routines = routinesResponse.body() ?: emptyList()
+
+                // 루틴이 없으면 새 루틴 생성
+                if (routines.isEmpty()) {
+                    val defaultRoutine = RoutineDto(
+                        userId = userId!!, // 가져온 userId 사용
+                        name = "루틴 1"
+                    )
+                    val createResponse = RetrofitInstance.api.createRoutine(defaultRoutine)
+                    if (createResponse.isSuccessful) {
+                        selectedRoutine = createResponse.body() // 생성된 루틴 선택
+                        println("Default routine created: ${selectedRoutine?.routineId}")
+                    }
+                } else {
+                    selectedRoutine = routines.firstOrNull() // 첫 번째 루틴 선택
+                    println("First routine selected: ${selectedRoutine?.routineId}")
+                }
+            } catch (e: Exception) {
+                println("Exception during initialization: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    // 루틴 다이얼로그 표시
+    if (showRoutineDialog) {
+        RoutineDialog(
+            onDismiss = { showRoutineDialog = false }, // 다이얼로그 닫기
+            onRoutineSelected = { routine ->
+                selectedRoutine = routine
+                showRoutineDialog = false // 다이얼로그 닫기
+                println("Routine selected from dialog: ${routine.routineId}")
+            }
+        )
+    }
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController, 0) },
@@ -42,15 +111,48 @@ fun CustomRoutine(navController: NavController) {
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            SearchBar() // 검색 바
+            // 선택된 루틴 표시
+            if (selectedRoutine != null) {
+                Text(
+                    text = "선택된 루틴: ${selectedRoutine?.name} (ID: ${selectedRoutine?.routineId})",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Text(
+                    text = "루틴을 선택하세요",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    color = Color.Gray
+                )
+            }
+
+            // 검색 바
+            SearchBar()
+
+            // 카테고리 필터
             CategoryFilters(selectedCategory) { category ->
                 selectedCategory = category // 선택된 카테고리 변경
             }
+
             Spacer(modifier = Modifier.height(16.dp)) // 카테고리와 운동 목록 사이의 간격
-            ExerciseList(selectedCategory) // 선택된 카테고리를 기반으로 운동 목록 표시
+
+            // 선택된 카테고리와 루틴 ID를 기반으로 운동 목록 표시
+            selectedRoutine?.let { routine ->
+                println("Selected Routine: $routine")
+                if (routine.routineId != null && routine.routineId > 0) {
+                    ExerciseList(selectedCategory, routine.routineId)
+                    println("Routine ID sent to ExerciseList: ${routine.routineId}")
+                } else {
+                    println("Invalid routine ID: ${routine.routineId}")
+                }
+            }
         }
     }
 }
+
+
 
 @Composable
 fun CategoryFilters(
@@ -96,16 +198,18 @@ fun CategoryFilters(
         }
     }
 }
-
 @Composable
-fun ExerciseList(selectedCategory: String) {
+fun ExerciseList(selectedCategory: String, selectedRoutineId: Long) {
     var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var selectedExercise by remember { mutableStateOf<String?>(null) }
+    var selectedExercise by remember { mutableStateOf<Long?>(null) } // 선택된 운동 ID를 저장
+
+    // CoroutineScope 추가
+    val coroutineScope = rememberCoroutineScope()
 
     // 서버에서 운동 목록 가져오기
-    LaunchedEffect(selectedCategory) { // 카테고리가 변경될 때마다 호출
+    LaunchedEffect(selectedCategory) {
         try {
             isLoading = true
             errorMessage = null
@@ -145,16 +249,14 @@ fun ExerciseList(selectedCategory: String) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
-                            .clickable { selectedExercise = if (selectedExercise == exercise.name) null else exercise.name },
+                            .clickable { selectedExercise = if (selectedExercise == exercise.exerciseId) null else exercise.exerciseId },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
                                 .background(Color.DarkGray)
-                        ) {
-                            // 이미지 대신 회색 박스
-                        }
+                        )
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
                             text = "${exercise.name} - ${exercise.category}",
@@ -162,12 +264,28 @@ fun ExerciseList(selectedCategory: String) {
                             modifier = Modifier.weight(1f)
                         )
 
-                        if (selectedExercise == exercise.name) {
+                        if (selectedExercise == exercise.exerciseId) {
                             IconButton(onClick = {
-                                /**
-                                 * + 버튼 누르고 루틴 선택해서 추가하도록 하면 될 듯
-                                 */
-                            }) {
+                                coroutineScope.launch {
+                                    try {
+                                        val request = CreateRoutineExerciseRequest(
+                                            routineId = selectedRoutineId,
+                                            exercises = listOf(ExerciseRequest(exerciseId = exercise.exerciseId))
+                                        )
+                                        println("Request Body Sent: $request")
+                                        val response = RetrofitInstance.api.addExercisesToRoutine(request)
+                                        if (response.isSuccessful) {
+                                            println("Exercise added successfully")
+                                            selectedExercise = null
+                                        } else {
+                                            errorMessage = "Error: ${response.errorBody()?.string()}"
+                                        }
+                                    } catch (e: Exception) {
+                                        errorMessage = "An error occurred: ${e.localizedMessage}"
+                                    }
+                                }
+                            })
+                            {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_add),
                                     contentDescription = "Add to Routine",

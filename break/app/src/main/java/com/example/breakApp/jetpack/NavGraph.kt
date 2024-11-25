@@ -4,8 +4,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.breakApp.jetpack.screen.*
 import com.example.breakApp.jetpack.subscreen.*
 import com.example.breakApp.jetpack.tools.DailyMemoScreen
@@ -38,9 +40,16 @@ fun NavGraph(navController: NavHostController) {
             val selectedDate = backStackEntry.arguments?.getString("selectedDate")
             DailyMemoScreen(navController = navController, selectedDate = selectedDate ?: "")
         }
-        composable("routineManagement/{routineName}") { backStackEntry ->
-            val routineName = backStackEntry.arguments?.getString("routineName") ?: "루틴 없음"
-            RoutineManagement(navController = navController, routineName = routineName)
+        composable(
+            route = "routineManagement/{routineId}/{routineName}",
+            arguments = listOf(
+                navArgument("routineId") { type = NavType.LongType },
+                navArgument("routineName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val routineId = backStackEntry.arguments?.getLong("routineId") ?: 0L
+            val routineName = backStackEntry.arguments?.getString("routineName") ?: "Unknown"
+            RoutineManagement(navController = navController, routineId = routineId, routineName = routineName)
         }
     }
 }

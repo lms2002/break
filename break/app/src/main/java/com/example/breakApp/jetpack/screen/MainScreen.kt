@@ -14,12 +14,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.breakApp.MainActivity
+import com.example.breakApp.api.RetrofitInstance
+import com.example.breakApp.api.model.RoutineDto
 import com.example.breakApp.jetpack.tools.BottomNavigationBar
+import com.example.breakApp.jetpack.tools.RoutineDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController) {
     var selectedItem by remember { mutableStateOf(0) }
+    var routines by remember { mutableStateOf<List<RoutineDto>>(emptyList()) } // 루틴 목록 상태
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // 서버에서 루틴 목록 가져오기
+    LaunchedEffect(Unit) {
+        try {
+            isLoading = true
+            val response = RetrofitInstance.api.getRoutineList()
+            if (response.isSuccessful) {
+                routines = response.body() ?: emptyList()
+            } else {
+                errorMessage = "Error: ${response.errorBody()?.string()}"
+            }
+        } catch (e: Exception) {
+            errorMessage = "An error occurred: ${e.localizedMessage}"
+        } finally {
+            isLoading = false
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -51,7 +74,6 @@ fun MainScreen(navController: NavController) {
                         .clickable { /* 클릭 시 다이얼로그 표시 */ } // 클릭 시 다이얼로그 표시
                         .padding(16.dp)
                 ) {
-                    // 여기에 다이얼로그를 띄우는 로직 추가 가능
                     val mainActivity = navController.context as? MainActivity
                     Button(onClick = { mainActivity?.testBackendConnection() }) {
                         Text("서버 연결 테스트")
@@ -67,30 +89,50 @@ fun MainScreen(navController: NavController) {
                 )
             }
 
-            // 루틴 목록 (예시)
-            val routines = listOf("루틴 1", "루틴 2", "루틴 3", "루틴 4")
+            if (isLoading) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (errorMessage != null) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = errorMessage ?: "",
+                            color = Color.Red
+                        )
+                    }
+                }
+            } else {
+                items(routines) { routine ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .padding(vertical = 8.dp)
+                            .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp))
+                            .clickable {
+                                navController.navigate("routineManagement/${routine.routineId}/${routine.name}")
+                            }
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = routine.name, style = MaterialTheme.typography.bodyLarge)
+                    }
 
-            items(routines) { routine ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(vertical = 8.dp)
-                        .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp))
-                        .clickable {
-                            navController.navigate("routineManagement/$routine")
-                        }
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = routine, style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }
     }
 }
-
-/*
-241101_내일 할 일, 루틴 부분 박스로 변경 완료
-
- */
