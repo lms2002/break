@@ -24,6 +24,7 @@ import com.example.breakApp.api.model.RoutineDto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -183,21 +184,76 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        onClick = { /* 저장 로직 */ },
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    // 루틴 삭제 API 호출
+                                    val response = RetrofitInstance.api.deleteRoutine(routineId)
+                                    if (response.isSuccessful) {
+                                        // 성공적으로 삭제한 경우 MainScreen으로 이동
+                                        withContext(Dispatchers.Main) {
+                                            navController.navigate("mainscreen") {
+                                                popUpTo("mainscreen") { inclusive = true }
+                                            }
+                                        }
+                                    } else {
+                                        // 삭제 실패 시 오류 처리
+                                        withContext(Dispatchers.Main) {
+                                            println("Failed to delete routine: ${response.errorBody()?.string()}")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    // 네트워크 오류 처리
+                                    withContext(Dispatchers.Main) {
+                                        println("Error deleting routine: ${e.localizedMessage}")
+                                    }
+                                }
+                            }
+                        },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("저장", color = Color.White)
+                        Text("삭제", color = Color.White)
                     }
                     Button(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    val updatedRoutine = RoutineDto(
+                                        routineId = routineId,
+                                        userId = userId ?: 0L, // 현재 사용자 ID
+                                        name = currentRoutineName, // 현재 입력된 루틴 이름
+                                        createdAt = "", // 필요에 따라 적절히 수정
+                                        updatedAt = ""  // 필요에 따라 적절히 수정
+                                    )
+                                    val response = RetrofitInstance.api.updateRoutine(routineId, updatedRoutine)
+                                    if (response.isSuccessful) {
+                                        withContext(Dispatchers.Main) {
+                                            println("Routine updated successfully")
+                                            navController.navigate("mainScreen") {
+                                                popUpTo("mainScreen") { inclusive = true }
+                                            }
+                                        }
+                                    } else {
+                                        withContext(Dispatchers.Main) {
+                                            println("Failed to update routine: ${response.errorBody()?.string()}")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
+                                        println("Error updating routine: ${e.localizedMessage}")
+                                    }
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f), // 5:5 비율 설정
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("취소", color = Color.Black)
+                        Text("저장", color = Color.Black)
                     }
+
                 }
             }
         }
