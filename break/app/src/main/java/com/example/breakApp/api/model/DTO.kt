@@ -78,6 +78,7 @@ data class RefreshTokenRequest(
 data class CreateInBodyDto(
     val measurementDate: String?,
     val age: Int?,
+    val height: Double?,
     val weight: Double?,
     val bodyFatPercentage: Double?,
     val muscleMass: Double?,

@@ -192,6 +192,7 @@ fun HistoryBody(navController: NavController) {
                 val createInBodyDto = CreateInBodyDto(
                     measurementDate = measurementDate, // String으로 전달
                     age = age.toIntOrNull(),
+                    height = height.toDoubleOrNull(),
                     weight = weight.toDoubleOrNull(),
                     bodyFatPercentage = bodyFat.toDoubleOrNull(),
                     muscleMass = skeletalMuscle.toDoubleOrNull(),
