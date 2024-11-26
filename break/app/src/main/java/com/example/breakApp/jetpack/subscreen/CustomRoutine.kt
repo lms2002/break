@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun CustomRoutine(navController: NavController) {
-    var selectedCategory by remember { mutableStateOf("가슴") } // 초기 카테고리
+    var selectedTarget by remember { mutableStateOf("가슴") } // 초기 카테고리
     var showRoutineDialog by remember { mutableStateOf(true) } // 루틴 선택 다이얼로그 표시 여부
     var selectedRoutine by remember { mutableStateOf<RoutineDto?>(null) } // 선택된 루틴
     var userId by remember { mutableStateOf<Long?>(null) }
@@ -132,8 +132,8 @@ fun CustomRoutine(navController: NavController) {
             SearchBar()
 
             // 카테고리 필터
-            CategoryFilters(selectedCategory) { category ->
-                selectedCategory = category // 선택된 카테고리 변경
+            CategoryFilters(selectedTarget) { target ->
+                selectedTarget = target // 선택된 카테고리 변경
             }
 
             Spacer(modifier = Modifier.height(16.dp)) // 카테고리와 운동 목록 사이의 간격
@@ -142,7 +142,7 @@ fun CustomRoutine(navController: NavController) {
             selectedRoutine?.let { routine ->
                 println("Selected Routine: $routine")
                 if (routine.routineId != null && routine.routineId > 0) {
-                    ExerciseList(selectedCategory, routine.routineId)
+                    ExerciseList(selectedTarget, routine.routineId) // selectedBodyPart -> selectedTarget
                     println("Routine ID sent to ExerciseList: ${routine.routineId}")
                 } else {
                     println("Invalid routine ID: ${routine.routineId}")
@@ -156,10 +156,10 @@ fun CustomRoutine(navController: NavController) {
 
 @Composable
 fun CategoryFilters(
-    selectedCategory: String,
-    onCategorySelected: (String) -> Unit
+    selectedTarget: String,
+    onTargetSelected: (String) -> Unit // 함수명도 target에 맞게 변경
 ) {
-    val categories = listOf("가슴", "등", "어깨", "유산소", "삼두", "이두", "하체", "전신")
+    val targets = listOf("가슴", "등", "어깨", "유산소", "삼두", "이두", "하체", "전신") // "categories"를 "targets"로 변경
 
     Column(
         modifier = Modifier
@@ -170,14 +170,14 @@ fun CategoryFilters(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            categories.take(4).forEach { category ->
+            targets.take(4).forEach { target -> // targets의 첫 4개를 반복
                 Text(
-                    text = category,
-                    color = if (selectedCategory == category) Color(0xFFFFA500) else Color.White,
+                    text = target,
+                    color = if (selectedTarget == target) Color(0xFFFFA500) else Color.White, // 선택된 타겟 강조
                     style = TextStyle(fontSize = 16.sp),
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
-                        .clickable { onCategorySelected(category) } // 클릭 시 선택된 카테고리 전달
+                        .clickable { onTargetSelected(target) } // 클릭 시 선택된 타겟 전달
                 )
             }
         }
@@ -185,21 +185,23 @@ fun CategoryFilters(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            categories.drop(4).forEach { category ->
+            targets.drop(4).forEach { target -> // targets의 나머지 4개를 반복
                 Text(
-                    text = category,
-                    color = if (selectedCategory == category) Color(0xFFFFA500) else Color.White,
+                    text = target,
+                    color = if (selectedTarget == target) Color(0xFFFFA500) else Color.White, // 선택된 타겟 강조
                     style = TextStyle(fontSize = 16.sp),
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
-                        .clickable { onCategorySelected(category) } // 클릭 시 선택된 카테고리 전달
+                        .clickable { onTargetSelected(target) } // 클릭 시 선택된 타겟 전달
                 )
             }
         }
     }
 }
+
+
 @Composable
-fun ExerciseList(selectedCategory: String, selectedRoutineId: Long) {
+fun ExerciseList(selectedTarget: String, selectedRoutineId: Long) {
     var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -209,13 +211,15 @@ fun ExerciseList(selectedCategory: String, selectedRoutineId: Long) {
     val coroutineScope = rememberCoroutineScope()
 
     // 서버에서 운동 목록 가져오기
-    LaunchedEffect(selectedCategory) {
+    LaunchedEffect(selectedTarget) {
         try {
             isLoading = true
             errorMessage = null
-            val response = RetrofitInstance.api.getExercisesByCategory(selectedCategory)
+            val response = RetrofitInstance.api.getExercisesByTargetArea(selectedTarget) // API 호출
             if (response.isSuccessful) {
-                exercises = response.body() ?: emptyList()
+                exercises = response.body() ?: emptyList() // List<Exercise>로 처리
+                println("Exercises fetched: $exercises") // 로그 추가
+                println("Selected Target: $selectedTarget")
             } else {
                 errorMessage = "Error: ${response.errorBody()?.string()}"
             }
@@ -259,7 +263,7 @@ fun ExerciseList(selectedCategory: String, selectedRoutineId: Long) {
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            text = "${exercise.name} - ${exercise.category}",
+                            text = "${exercise.name} - ${exercise.target}", // 출력 변경
                             style = TextStyle(fontSize = 16.sp, color = Color.White),
                             modifier = Modifier.weight(1f)
                         )
@@ -284,8 +288,7 @@ fun ExerciseList(selectedCategory: String, selectedRoutineId: Long) {
                                         errorMessage = "An error occurred: ${e.localizedMessage}"
                                     }
                                 }
-                            })
-                            {
+                            }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_add),
                                     contentDescription = "Add to Routine",
@@ -299,6 +302,7 @@ fun ExerciseList(selectedCategory: String, selectedRoutineId: Long) {
         }
     }
 }
+
 
 @Composable
 fun SearchBar() {

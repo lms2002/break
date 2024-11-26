@@ -124,12 +124,15 @@ data class VerifyCodeRequest(
 )
 
 data class Exercise(
-    val exerciseId: Long,
-    val name: String,                 // 운동 이름
-    val instructions: List<String>?,  // 운동 설명 (여러 단계로 구성된 리스트)
-    val category: String,             // 운동 카테고리 (기본값: General)
-    val targetArea: String            // 타겟 부위 (기본값: Full Body)
+    val exerciseId: Long,            // 운동 ID
+    val name: String,               // 운동 이름
+    val bodyPart: String = "other",  // 운동 부위
+    val target: String = "other",    // 타겟 부위
+    val equipment: String?,          // 사용 장비
+    val gifUrl: String?,             // 운동 GIF URL
+    val instructions: String?  // 운동 설명
 )
+
 
 
 data class RoutineDto(

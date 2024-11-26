@@ -73,16 +73,15 @@ interface ApiService {
     ): Response<BaseResponse<Exercise>>
 
     // 카테고리별 운동 데이터를 가져오는 API
-    @GET("exercises/category/{category}")
+    @GET("exercises/category/{bodyPart}")
     suspend fun getExercisesByCategory(
-        @Path("category") category: String
+        @Path("bodyPart") bodyPart: String
     ): Response<List<Exercise>>
 
-    // 타겟 부위별 운동 데이터를 가져오는 API
-    @GET("exercises/target/{targetArea}")
+    @GET("exercises/target/{target}")
     suspend fun getExercisesByTargetArea(
-        @Path("targetArea") targetArea: String
-    ): Response<BaseResponse<List<Exercise>>>
+        @Path("target") target: String
+    ): Response<List<Exercise>> // List<Exercise>로 수정
 
     // Create a new routine
     @POST("routines")
