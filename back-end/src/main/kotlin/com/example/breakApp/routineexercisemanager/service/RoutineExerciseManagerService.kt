@@ -79,9 +79,11 @@ class RoutineExerciseManagerService(
             ExerciseDetailDto(
                 exerciseId = it.exercise.exerciseId!!,
                 name = it.exercise.name,
-                description = it.exercise.description,
-                category = it.exercise.category,
-                targetArea = it.exercise.targetArea
+                instructions = it.exercise.instructions,
+                bodyPart = it.exercise.bodyPart,
+                target = it.exercise.target,
+                gifUrl = it.exercise.gifUrl,
+                equipment = it.exercise.equipment
             )
         }
     }

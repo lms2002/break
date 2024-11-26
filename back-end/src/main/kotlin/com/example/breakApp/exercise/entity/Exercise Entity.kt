@@ -15,27 +15,21 @@ data class Exercise(
     // @Id와 @GeneratedValue: exerciseId 필드를 기본 키로 설정하며, 자동으로 증가하는 IDENTITY 전략을 사용하여 값을 자동 생성합니다.
     // exerciseId 필드는 Long 타입의 기본 키로, 데이터베이스에서 생성된 ID를 저장합니다.
 
-    @Column(nullable = false)
-    val name: String,
-
-    // @Column(nullable = false): name 필드는 NULL 값을 허용하지 않는 칼럼으로 설정됩니다.
-    // 이 필드는 운동의 이름을 저장합니다.
+    @Column(nullable = true)
+    val name: String?,
 
     @Column(columnDefinition = "TEXT", nullable = true)
-    val description: String? = null,
-
-    // @Column(columnDefinition = "TEXT", nullable = true): description 필드는 TEXT 타입이며, NULL 값을 허용합니다.
-    // 운동 설명을 저장하는 필드로, 내용이 없을 수도 있습니다.
+    val instructions: String? = null,
 
     @Column(nullable = false)
-    val category: String = "General",
-
-    // @Column(nullable = false): category 필드는 NULL 값을 허용하지 않으며 기본값으로 "General"을 설정합니다.
-    // 운동의 카테고리를 나타내는 필드입니다.
+    val bodyPart: String = "other",
 
     @Column(nullable = false)
-    val targetArea: String = "Full Body"
+    val target: String = "other",
 
-    // @Column(nullable = false): targetArea 필드도 NULL 값을 허용하지 않으며 기본값으로 "Full Body"를 설정합니다.
-    // 운동의 타겟 부위를 나타내는 필드입니다.
+    @Column(nullable = true)
+    val equipment: String? = null,
+
+    @Column(nullable = true)
+    val gifUrl: String? = null // GIF URL 필드 추가
 )

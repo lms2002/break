@@ -15,11 +15,11 @@ interface ExerciseRepository : JpaRepository<Exercise, Long> {
     // 반환 타입은 Exercise?로, 이름이 일치하는 운동이 없으면 null을 반환합니다.
 
     // 카테고리별로 운동 목록 가져오기
-    fun findByCategory(category: String): List<Exercise>
+    fun findBybodyPart(bodyPart: String): List<Exercise>
     // findByCategory: 주어진 카테고리에 속하는 모든 운동 데이터를 리스트 형태로 반환합니다.
 
     // 타겟 부위별로 운동 목록 가져오기
-    fun findByTargetArea(targetArea: String): List<Exercise>
+    fun findBytarget(target: String): List<Exercise>
     // findByTargetArea: 특정 타겟 부위에 해당하는 운동 데이터를 리스트로 반환합니다.
 
     // 이름이 포함된 운동 목록 검색 (부분 일치 검색)

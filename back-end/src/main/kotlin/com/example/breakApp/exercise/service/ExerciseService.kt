@@ -69,24 +69,26 @@ class ExerciseService(
                 val exercises: List<ExerciseDto> = objectMapper.readValue(responseData)
 
                 exercises.forEach { dto ->
-                    val mainCategory = classifyExercise(dto.targetArea)  // 대분류 적용
+                    val mainCategory = classifyExercise(dto.target)  // 대분류 적용
                     val exercise = Exercise(
                         name = dto.name,
-                        description = dto.instructions?.joinToString(" ") ?: "No description available",
-                        category = mainCategory,  // 대분류로 저장
-                        targetArea = dto.targetArea
+                        instructions = dto.instructions?.joinToString(" ") ?: "No description available",
+                        target = mainCategory,  // 대분류로 저장
+                        gifUrl = dto.gifUrl, // GIF URL 저장
+                        bodyPart = dto.bodyPart,
+                        equipment = dto.equipment
                     )
                     // 변환한 Exercise 엔티티를 데이터베이스에 저장
                     exerciseRepository.save(exercise)
-                    logger.info("Saved exercise: ${exercise.name}, MainCategory: $mainCategory, TargetArea: ${exercise.targetArea}")
+                    logger.info("Saved exercise: \${exercise.name}, MainCategory: \$mainCategory, TargetArea: \${exercise.targetArea}, GIF URL: \${exercise.gifUrl}")
                 }
-                logger.info("총 ${exercises.size}개의 운동 데이터가 저장되었습니다.")
+                logger.info("총 \${exercises.size}개의 운동 데이터가 저장되었습니다.")
             } else {
                 logger.warn("API 응답이 비어 있습니다.")
             }
         } catch (e: Exception) {
             // 오류 발생 시 로그 출력
-            logger.error("API 호출 중 오류 발생: ${e.message}")
+            logger.error("API 호출 중 오류 발생: \${e.message}",e)
         }
     }
 }

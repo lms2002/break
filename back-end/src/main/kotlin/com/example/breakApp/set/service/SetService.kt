@@ -1,5 +1,8 @@
 package com.example.breakApp.set.service
 
+import com.example.breakApp.common.authority.JwtTokenProvider
+import com.example.breakApp.exercise.repository.ExerciseRepository
+import com.example.breakApp.routine.repository.RoutineRepository
 import com.example.breakApp.set.dto.ExerciseSetDto
 import com.example.breakApp.set.entity.ExerciseSet
 import com.example.breakApp.set.repository.ExerciseSetRepository
@@ -8,14 +11,27 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ExerciseSetService(
-    private val exerciseSetRepository: ExerciseSetRepository
+    private val exerciseSetRepository: ExerciseSetRepository,
+    private val exerciseRepository: ExerciseRepository,
+    private val routineRepository: RoutineRepository,
+    private val jwtTokenProvider: JwtTokenProvider
 ) {
-    // 새로운 세트 생성
     @Transactional
-    fun createExerciseSet(exerciseSetDto: ExerciseSetDto): ExerciseSetDto {
+    fun createExerciseSet(exerciseSetDto: ExerciseSetDto, token: String): ExerciseSetDto {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
+        val routine = routineRepository.findById(exerciseSetDto.routineId)
+            .orElseThrow { RuntimeException("Routine not found with ID: ${exerciseSetDto.routineId}") }
+
+        if (routine.member.userId != userId) {
+            throw RuntimeException("User not authorized to access this routine")
+        }
+
+        val exercise = exerciseRepository.findById(exerciseSetDto.exerciseId)
+            .orElseThrow { RuntimeException("Exercise not found with ID: ${exerciseSetDto.exerciseId}") }
+
         val exerciseSet = ExerciseSet(
-            routineId = exerciseSetDto.routineId,
-            exerciseId = exerciseSetDto.exerciseId,
+            routine = routine,
+            exercise = exercise,
             setNumber = exerciseSetDto.setNumber,
             repetitions = exerciseSetDto.repetitions,
             weight = exerciseSetDto.weight,
@@ -25,48 +41,75 @@ class ExerciseSetService(
         return savedSet.toDto()
     }
 
-    // 특정 루틴 및 운동에 대한 모든 세트 조회
-    fun getSetsByRoutineAndExercise(routineId: Long, exerciseId: Long): List<ExerciseSetDto> {
-        return exerciseSetRepository.findByRoutineIdAndExerciseId(routineId, exerciseId)
-            .map { it.toDto() }
+    fun getSetsByRoutineAndExercise(routineId: Long, exerciseId: Long, token: String): List<ExerciseSetDto> {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
+        val routine = routineRepository.findById(routineId)
+            .orElseThrow { RuntimeException("Routine not found with ID: $routineId") }
+
+        if (routine.member.userId != userId) {
+            throw RuntimeException("User not authorized to access this routine")
+        }
+
+        val exercise = exerciseRepository.findById(exerciseId)
+            .orElseThrow { RuntimeException("Exercise not found with ID: $exerciseId") }
+
+        return exerciseSetRepository.findByRoutineAndExercise(routine, exercise).map { it.toDto() }
     }
 
-    // 특정 루틴에 대한 모든 세트 조회
-    fun getSetsByRoutine(routineId: Long): List<ExerciseSetDto> {
-        return exerciseSetRepository.findByRoutineId(routineId).map { it.toDto() }
-    }
+    fun getSetsByRoutine(routineId: Long, token: String): List<ExerciseSetDto> {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
+        val routine = routineRepository.findById(routineId)
+            .orElseThrow { RuntimeException("Routine not found with ID: $routineId") }
 
-    // 세트 업데이트
+        if (routine.member.userId != userId) {
+            throw RuntimeException("User not authorized to access this routine")
+        }
+
+        return exerciseSetRepository.findByRoutine(routine).map { it.toDto() }
+    }
     @Transactional
-    fun updateExerciseSet(setId: Long, updatedSetDto: ExerciseSetDto): ExerciseSetDto {
+    fun updateExerciseSet(setId: Long, updatedSetDto: ExerciseSetDto, token: String): ExerciseSetDto {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
         val existingSet = exerciseSetRepository.findById(setId)
-            .orElseThrow { RuntimeException("Set not found") }
+            .orElseThrow { RuntimeException("Set not found with ID: $setId") }
+
+        if (existingSet.routine.member.userId != userId) {
+            throw RuntimeException("User not authorized to update this set")
+        }
+
+        val exercise = exerciseRepository.findById(updatedSetDto.exerciseId)
+            .orElseThrow { RuntimeException("Exercise not found with ID: ${updatedSetDto.exerciseId}") }
 
         existingSet.apply {
             setNumber = updatedSetDto.setNumber
             repetitions = updatedSetDto.repetitions
             weight = updatedSetDto.weight
             isCompleted = updatedSetDto.isCompleted
+            this.exercise = exercise
         }
+
         val updatedSet = exerciseSetRepository.save(existingSet)
         return updatedSet.toDto()
     }
 
-    // 세트 삭제
     @Transactional
-    fun deleteExerciseSet(setId: Long) {
-        if (!exerciseSetRepository.existsById(setId)) {
-            throw RuntimeException("Set not found")
+    fun deleteExerciseSet(setId: Long, token: String) {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
+        val existingSet = exerciseSetRepository.findById(setId)
+            .orElseThrow { RuntimeException("Set not found with ID: $setId") }
+
+        if (existingSet.routine.member.userId != userId) {
+            throw RuntimeException("User not authorized to delete this set")
         }
-        exerciseSetRepository.deleteById(setId)
+
+        exerciseSetRepository.delete(existingSet)
     }
 }
 
-// 확장 함수로 엔티티를 DTO로 변환
 private fun ExerciseSet.toDto(): ExerciseSetDto = ExerciseSetDto(
     setId = this.setId,
-    routineId = this.routineId,
-    exerciseId = this.exerciseId,
+    routineId = this.routine.routineId!!,
+    exerciseId = this.exercise.exerciseId!!,
     setNumber = this.setNumber,
     repetitions = this.repetitions,
     weight = this.weight,
