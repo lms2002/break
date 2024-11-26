@@ -1,6 +1,7 @@
 package com.example.breakApp.routine.entity
 
 import com.example.breakApp.member.entity.Member
+import com.example.breakApp.routine.dto.RoutineDto
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -25,3 +26,12 @@ class Routine(
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now()
 )
+fun Routine.toDto(): RoutineDto {
+    return RoutineDto(
+        routineId = this.routineId,
+        userId = this.member.userId!!,
+        name = this.name,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt
+    )
+}

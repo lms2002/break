@@ -19,14 +19,16 @@ CREATE TABLE users (
 -- 4. 운동(Exercise) 테이블
 CREATE TABLE Exercise (
     exercise_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    description TEXT,
-    category VARCHAR(50) NOT NULL DEFAULT 'General',
-    targetArea VARCHAR(50) NOT NULL DEFAULT 'Full Body',
+    name VARCHAR(50),
+    instructions TEXT,
+    bodyPart VARCHAR(50) NOT NULL DEFAULT 'other',
+    target VARCHAR(50) NOT NULL DEFAULT 'other',
+    gif_url VARCHAR(255),
+    equipment VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_category (category),
-    INDEX idx_target_area (targetArea)
+    INDEX idx_bodyPart (bodyPart),
+    INDEX idx_target (target)
 ) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- 5. 루틴(Routine) 테이블
@@ -80,15 +82,14 @@ CREATE TABLE in_body (
 ) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- 9. 운동기록(WorkoutLog) 테이블
-CREATE TABLE WorkoutLog (
+CREATE TABLE workout_log (
     log_id BIGINT AUTO_INCREMENT PRIMARY KEY,          -- 운동 로그 ID (기본키)
     user_id BIGINT NOT NULL,                           -- 유저 ID (users 테이블 참조)
     routine_id BIGINT NOT NULL,                        -- 루틴 ID (Routine 테이블 참조)
-    exercise_id BIGINT NOT NULL,                       -- 운동 ID (Exercise 테이블 참조)
-    set_id BIGINT NOT NULL,                            -- 세트 ID (exercise_set 테이블 참조)
+    exercise_id BIGINT NULL,                       -- 운동 ID (Exercise 테이블 참조)
+    set_id BIGINT NULL,                            -- 세트 ID (exercise_set 테이블 참조)
     repetitions INT DEFAULT 10,                       -- 반복 횟수
     weight FLOAT DEFAULT 10,                          -- 중량
-    is_completed BOOLEAN DEFAULT FALSE,               -- 세트 완료 여부 (기본값은 FALSE)
     start_time DATETIME NOT NULL,                      -- 운동 시작 시간
     end_time DATETIME,                                 -- 운동 종료 시간 (NULL일 수 있음)
     duration INT GENERATED ALWAYS AS                   -- 운동 소요 시간 계산 (분 단위로 자동 계산)
