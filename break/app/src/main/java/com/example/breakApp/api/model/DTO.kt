@@ -176,8 +176,8 @@ data class ExerciseSetDto(
 data class WorkoutLogDto(
     val logId: Long,
     val routine: RoutineDto,
-    val startTime: LocalDateTime, // JSON 직렬화를 위해 LocalDateTime 어댑터 필요
-    val endTime: LocalDateTime?, // Nullable
+    val startTime: String, // 문자열로 처리
+    val endTime: String?, // Nullable 문자열로 처리
     val duration: Long? // Nullable, 끝난 후에만 계산
 )
 

@@ -22,6 +22,7 @@ import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.Exercise
 import com.example.breakApp.api.model.ExerciseSetDto
 import com.example.breakApp.api.model.RoutineDto
+import com.example.breakApp.api.model.StartWorkoutRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,10 +41,14 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var userId by remember { mutableStateOf<Long?>(null) } // 사용자 ID 상태
-    var token by remember { mutableStateOf("") }
+    var workoutLogId by remember { mutableStateOf<Long?>(null) } // 시작한 운동의 로그 ID
+    var startTime by remember { mutableStateOf<String?>(null) } // 운동 시작 시간
+    var isWorkoutInProgress by remember { mutableStateOf(false) } // 운동 중인지 여부
+    var endTime by remember { mutableStateOf<String?>(null) }
 
     // 사용자 ID 가져오기
     LaunchedEffect(Unit) {
+        isLoading = true // 로딩 시작
         try {
             val response = RetrofitInstance.api.getMyInfo()
             if (response.isSuccessful) {
@@ -53,13 +58,15 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
             }
         } catch (e: Exception) {
             errorMessage = "An error occurred: ${e.localizedMessage}"
+        } finally {
+            isLoading = false // API 호출 완료 후 로딩 상태 종료
         }
     }
 
-    // API 호출: 루틴에 포함된 운동 데이터 가져오기
+// API 호출: 루틴에 포함된 운동 데이터 가져오기
     LaunchedEffect(routineId) {
+        isLoading = true // 로딩 시작
         try {
-            isLoading = true
             val response = RetrofitInstance.api.getExercisesByRoutineId(routineId)
             if (response.isSuccessful) {
                 exercises = response.body() ?: emptyList()
@@ -69,9 +76,10 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
         } catch (e: Exception) {
             errorMessage = "An error occurred: ${e.localizedMessage}"
         } finally {
-            isLoading = false
+            isLoading = false // API 호출 완료 후 로딩 상태 종료
         }
     }
+
 
     Scaffold(
         topBar = {
@@ -165,6 +173,80 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 운동 시작 버튼
+                Button(
+                    onClick = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                val response = RetrofitInstance.api.startWorkout(
+                                    StartWorkoutRequest(routineId = routineId)
+                                )
+                                if (response.isSuccessful) {
+                                    val workoutLog = response.body()
+                                    workoutLogId = workoutLog?.logId
+                                    startTime = workoutLog?.startTime.toString() // LocalDateTime -> String
+                                    isWorkoutInProgress = true
+                                } else {
+                                    withContext(Dispatchers.Main) {
+                                        errorMessage = "Failed to start workout: ${response.errorBody()?.string()}"
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    errorMessage = "Error starting workout: ${e.localizedMessage}"
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f), // 버튼 크기를 균등하게 분배
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
+                    enabled = !isWorkoutInProgress // 운동 중일 때 시작 버튼 비활성화
+                ) {
+                    Text("운동 시작", color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.width(16.dp)) // 버튼 간 간격 추가
+
+                // 운동 종료 버튼
+                Button(
+                    onClick = {
+                        workoutLogId?.let { logId ->
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    val response = RetrofitInstance.api.endWorkout(logId)
+                                    if (response.isSuccessful) {
+                                        val completedWorkout = response.body()
+                                        endTime = completedWorkout?.endTime.toString() // LocalDateTime -> String
+                                        isWorkoutInProgress = false
+                                    } else {
+                                        withContext(Dispatchers.Main) {
+                                            errorMessage = "Failed to end workout: ${response.errorBody()?.string()}"
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
+                                        errorMessage = "Error ending workout: ${e.localizedMessage}"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f), // 버튼 크기를 균등하게 분배
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    enabled = isWorkoutInProgress // 운동이 진행 중일 때만 종료 버튼 활성화
+                ) {
+                    Text("운동 종료", color = Color.White)
+                }
+            }
+
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -208,7 +290,10 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                             IconButton(onClick = {
                                 // 세트 삭제
                                 exerciseInputSections = exerciseInputSections.toMutableMap().apply {
-                                    val currentSets = getOrDefault(exercise.exerciseId, emptyList()).toMutableList()
+                                    val currentSets = getOrDefault(
+                                        exercise.exerciseId,
+                                        emptyList()
+                                    ).toMutableList()
                                     if (currentSets.isNotEmpty()) {
                                         currentSets.removeAt(currentSets.size - 1) // 마지막 세트를 삭제
                                         this[exercise.exerciseId] = currentSets
@@ -233,7 +318,8 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                     inputState.value = inputState.value.copy(first = newWeight)
                                 },
                                 onRepetitionsChange = { newRepetitions ->
-                                    inputState.value = inputState.value.copy(second = newRepetitions)
+                                    inputState.value =
+                                        inputState.value.copy(second = newRepetitions)
                                 },
                                 onSaveClicked = {
                                     // 서버로 세트 저장
@@ -250,19 +336,30 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                                 )
                                             )
                                             if (response.isSuccessful) {
-                                                exerciseInputSections = exerciseInputSections.toMutableMap().apply {
-                                                    val currentSets = getOrDefault(exercise.exerciseId, emptyList()).toMutableList()
-                                                    currentSets[index] = Triple(true, inputState, response.body()?.setId)
-                                                    this[exercise.exerciseId] = currentSets
-                                                }
+                                                exerciseInputSections =
+                                                    exerciseInputSections.toMutableMap().apply {
+                                                        val currentSets = getOrDefault(
+                                                            exercise.exerciseId,
+                                                            emptyList()
+                                                        ).toMutableList()
+                                                        currentSets[index] = Triple(
+                                                            true,
+                                                            inputState,
+                                                            response.body()?.setId
+                                                        )
+                                                        this[exercise.exerciseId] = currentSets
+                                                    }
                                             } else {
                                                 withContext(Dispatchers.Main) {
-                                                    errorMessage = "Failed to save set: ${response.errorBody()?.string()}"
+                                                    errorMessage = "Failed to save set: ${
+                                                        response.errorBody()?.string()
+                                                    }"
                                                 }
                                             }
                                         } catch (e: Exception) {
                                             withContext(Dispatchers.Main) {
-                                                errorMessage = "Error saving set: ${e.localizedMessage}"
+                                                errorMessage =
+                                                    "Error saving set: ${e.localizedMessage}"
                                             }
                                         }
                                     }
@@ -293,7 +390,11 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                     } else {
                                         // 삭제 실패 시 오류 처리
                                         withContext(Dispatchers.Main) {
-                                            println("Failed to delete routine: ${response.errorBody()?.string()}")
+                                            println(
+                                                "Failed to delete routine: ${
+                                                    response.errorBody()?.string()
+                                                }"
+                                            )
                                         }
                                     }
                                 } catch (e: Exception) {
@@ -309,43 +410,6 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text("삭제", color = Color.White)
-                    }
-                    Button(
-                        onClick = {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                try {
-                                    val updatedRoutine = RoutineDto(
-                                        routineId = routineId,
-                                        userId = userId ?: 0L, // 현재 사용자 ID
-                                        name = currentRoutineName, // 현재 입력된 루틴 이름
-                                        createdAt = "", // 필요에 따라 적절히 수정
-                                        updatedAt = ""  // 필요에 따라 적절히 수정
-                                    )
-                                    val response = RetrofitInstance.api.updateRoutine(routineId, updatedRoutine)
-                                    if (response.isSuccessful) {
-                                        withContext(Dispatchers.Main) {
-                                            println("Routine updated successfully")
-                                            navController.navigate("mainScreen") {
-                                                popUpTo("mainScreen") { inclusive = true }
-                                            }
-                                        }
-                                    } else {
-                                        withContext(Dispatchers.Main) {
-                                            println("Failed to update routine: ${response.errorBody()?.string()}")
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    withContext(Dispatchers.Main) {
-                                        println("Error updating routine: ${e.localizedMessage}")
-                                    }
-                                }
-                            }
-                        },
-                        modifier = Modifier.weight(1f), // 5:5 비율 설정
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("저장", color = Color.Black)
                     }
 
                 }

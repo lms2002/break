@@ -135,6 +135,15 @@ interface ApiService {
         @Path("setId") setId: Long
     ): Response<Unit>
 
+    @POST("workout-logs/start")
+    suspend fun startWorkout(
+        @Body request: StartWorkoutRequest
+    ): Response<WorkoutLogDto>
+
+    // 운동 종료 API
+    @POST("workout-logs/{logId}/end")
+    suspend fun endWorkout(@Path("logId") logId: Long): Response<WorkoutLogDto>
+
     // 토큰 검증
     @POST("auth/validate-token")
     suspend fun validateToken(): Response<BaseResponse<Boolean>>
