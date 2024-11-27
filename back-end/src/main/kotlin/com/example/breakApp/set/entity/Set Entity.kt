@@ -36,6 +36,7 @@ class ExerciseSet(
 fun ExerciseSet.toDto(): CompletedSetDto {
     return CompletedSetDto(
         setId = this.setId!!,
+        setNumber = this.setNumber,
         repetitions = this.repetitions,
         weight = this.weight
     )

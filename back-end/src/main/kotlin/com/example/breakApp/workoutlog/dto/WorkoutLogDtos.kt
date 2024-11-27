@@ -22,6 +22,7 @@ data class CompletedExerciseDto(
 
 data class CompletedSetDto(
     val setId: Long,
+    val setNumber: Int,
     val repetitions: Int,
     val weight: Float
 )
