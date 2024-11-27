@@ -163,6 +163,45 @@ data class TokenValidationResponse(
     val message: String
 )
 
+data class ExerciseSetDto(
+    val setId: Long? = null,
+    val routineId: Long,
+    val exerciseId: Long,  // 여전히 Long으로 유지
+    val setNumber: Int,
+    val repetitions: Int,
+    val weight: Float,
+    val isCompleted: Boolean
+)
+
+data class WorkoutLogDto(
+    val logId: Long,
+    val routine: RoutineDto,
+    val startTime: LocalDateTime, // JSON 직렬화를 위해 LocalDateTime 어댑터 필요
+    val endTime: LocalDateTime?, // Nullable
+    val duration: Long? // Nullable, 끝난 후에만 계산
+)
+
+data class CompletedWorkoutDto(
+    val routineId: Long,
+    val completedExercises: List<CompletedExerciseDto>
+)
+
+data class CompletedExerciseDto(
+    val exerciseId: Long,
+    val sets: List<CompletedSetDto>
+)
+
+data class CompletedSetDto(
+    val setId: Long,
+    val setNumber: Int,
+    val repetitions: Int,
+    val weight: Float
+)
+
+data class StartWorkoutRequest(
+    val routineId: Long
+)
+
 fun getCurrentTimestamp(): String {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
     return dateFormat.format(Date()) // 현재 시간을 포맷

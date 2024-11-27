@@ -1,9 +1,9 @@
 package com.example.breakApp.jetpack.subscreen
 
+import com.example.breakApp.jetpack.tools.ExerciseInputSection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import com.example.breakApp.R
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.Exercise
+import com.example.breakApp.api.model.ExerciseSetDto
 import com.example.breakApp.api.model.RoutineDto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,9 +34,13 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
     var newRoutineName by remember { mutableStateOf(routineName) } // 새로운 이름 입력
     var isEditing by remember { mutableStateOf(false) } // 편집 상태 관리
     var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
+    var exerciseInputSections by remember {
+        mutableStateOf<Map<Long, List<Triple<Boolean, MutableState<Pair<Float, Int>>, Long?>>>>(emptyMap())
+    }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var userId by remember { mutableStateOf<Long?>(null) } // 사용자 ID 상태
+    var token by remember { mutableStateOf("") }
 
     // 사용자 ID 가져오기
     LaunchedEffect(Unit) {
@@ -127,6 +132,7 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                         contentDescription = "Save"
                                     )
                                 }
+
                             }
                         } else {
                             // 기본 상태에서는 제목과 편집 버튼 표시
@@ -160,12 +166,10 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (isLoading) {
-                // 로딩 상태
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             } else if (errorMessage != null) {
-                // 에러 메시지 표시
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = errorMessage ?: "",
@@ -173,12 +177,102 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                     )
                 }
             } else {
-                // 운동 데이터 표시
                 exercises.forEach { exercise ->
-                    ExerciseInputSection(exercise.name)
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = exercise.name,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = {
+                                // 세트 추가
+                                exerciseInputSections = exerciseInputSections.toMutableMap().apply {
+                                    val currentSets = getOrDefault(exercise.exerciseId, emptyList())
+                                    this[exercise.exerciseId] = currentSets + Triple(
+                                        false, // 저장되지 않은 세트
+                                        mutableStateOf(Pair(0f, 0)), // 기본 weight와 repetitions 값
+                                        null // setId는 아직 null
+                                    )
+                                }
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_add),
+                                    contentDescription = "Add Set"
+                                )
+                            }
+                            IconButton(onClick = {
+                                // 세트 삭제
+                                exerciseInputSections = exerciseInputSections.toMutableMap().apply {
+                                    val currentSets = getOrDefault(exercise.exerciseId, emptyList()).toMutableList()
+                                    if (currentSets.isNotEmpty()) {
+                                        currentSets.removeAt(currentSets.size - 1) // 마지막 세트를 삭제
+                                        this[exercise.exerciseId] = currentSets
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_minus),
+                                    contentDescription = "Remove Set"
+                                )
+                            }
+                        }
+
+                        // 세트별 입력 필드 및 체크 버튼
+                        exerciseInputSections[exercise.exerciseId]?.forEachIndexed { index, (isSaved, inputState, setId) ->
+                            ExerciseInputSection(
+                                label = "세트 ${index + 1}",
+                                weight = inputState.value.first,
+                                repetitions = inputState.value.second,
+                                isSaved = isSaved,
+                                onWeightChange = { newWeight ->
+                                    inputState.value = inputState.value.copy(first = newWeight)
+                                },
+                                onRepetitionsChange = { newRepetitions ->
+                                    inputState.value = inputState.value.copy(second = newRepetitions)
+                                },
+                                onSaveClicked = {
+                                    // 서버로 세트 저장
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        try {
+                                            val response = RetrofitInstance.api.createExerciseSet(
+                                                ExerciseSetDto(
+                                                    routineId = routineId,
+                                                    exerciseId = exercise.exerciseId,
+                                                    setNumber = index + 1,
+                                                    weight = inputState.value.first,
+                                                    repetitions = inputState.value.second,
+                                                    isCompleted = true
+                                                )
+                                            )
+                                            if (response.isSuccessful) {
+                                                exerciseInputSections = exerciseInputSections.toMutableMap().apply {
+                                                    val currentSets = getOrDefault(exercise.exerciseId, emptyList()).toMutableList()
+                                                    currentSets[index] = Triple(true, inputState, response.body()?.setId)
+                                                    this[exercise.exerciseId] = currentSets
+                                                }
+                                            } else {
+                                                withContext(Dispatchers.Main) {
+                                                    errorMessage = "Failed to save set: ${response.errorBody()?.string()}"
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            withContext(Dispatchers.Main) {
+                                                errorMessage = "Error saving set: ${e.localizedMessage}"
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+
+                        }
+                    }
                 }
 
-                // 버튼을 화면 너비에 꽉 차게 배치
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -260,46 +354,3 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
     }
 }
 
-@Composable
-fun ExerciseInputSection(exerciseName: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = exerciseName,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            InputField(label = "반복 횟수")
-            InputField(label = "세트 수")
-            InputField(label = "중량 (kg)")
-        }
-    }
-}
-
-@Composable
-fun InputField(label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, fontSize = 14.sp, color = Color.Gray)
-        BasicTextField(
-            value = "",
-            onValueChange = { /* Value change logic */ },
-            modifier = Modifier
-                .width(80.dp)
-                .height(40.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                .padding(8.dp),
-            textStyle = TextStyle(fontSize = 14.sp, color = Color.Black)
-        )
-    }
-}

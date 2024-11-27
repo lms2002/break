@@ -124,6 +124,17 @@ interface ApiService {
         @Body request: CreateRoutineExerciseRequest
     ): Response<Unit>
 
+    //개별 세트 저장(생성)
+    @POST("exercise-sets")
+    suspend fun createExerciseSet(
+        @Body exerciseSetDto: ExerciseSetDto
+    ): Response<ExerciseSetDto>
+
+    @DELETE("exercise-sets/{setId}")
+    suspend fun deleteExerciseSet(
+        @Path("setId") setId: Long
+    ): Response<Unit>
+
     // 토큰 검증
     @POST("auth/validate-token")
     suspend fun validateToken(): Response<BaseResponse<Boolean>>
