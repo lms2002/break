@@ -1,5 +1,6 @@
 package com.example.breakApp.exercise.entity
 
+import com.example.breakApp.exercise.dto.ExerciseDto
 import jakarta.persistence.*
 
 // 이 패키지는 Exercise 엔티티를 정의하는 클래스입니다.
@@ -33,3 +34,13 @@ data class Exercise(
     @Column(nullable = true)
     val gifUrl: String? = null // GIF URL 필드 추가
 )
+fun Exercise.toDto(): ExerciseDto {
+    return ExerciseDto(
+        name = this.name,
+        bodyPart = this.bodyPart,
+        target = this.target,
+        equipment = this.equipment,
+        gifUrl = this.gifUrl,
+        instructions = listOf() // Exercise 엔티티에 instructions 데이터가 없으면 기본값 설정
+    )
+}

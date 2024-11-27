@@ -44,7 +44,7 @@ class ExerciseController(
         }
     }
 
-    @GetMapping("/category/{category}")
+    @GetMapping("/category/{bodyPart}")
     fun getExercisesByCategory(@PathVariable bodyPart: String): List<Exercise> {
         // @GetMapping("/category/{category}"): URL에 /category/{category}를 포함하여 매핑되며, 특정 카테고리의 운동 데이터를 조회합니다.
         // @PathVariable: URL 경로의 변수 {category} 값을 메서드의 매개변수 category에 바인딩합니다.
@@ -52,7 +52,7 @@ class ExerciseController(
         return exerciseRepository.findBybodyPart(bodyPart)
     }
 
-    @GetMapping("/target/{targetArea}")
+    @GetMapping("/target/{target}")
     fun getExercisesByTargetArea(@PathVariable target: String): List<Exercise> {
         // @GetMapping("/target/{targetArea}"): URL에 /target/{targetArea}를 포함하여 매핑되며, 특정 타겟 부위의 운동 데이터를 조회합니다.
         // @PathVariable: URL 경로의 변수 {targetArea} 값을 메서드의 매개변수 targetArea에 바인딩합니다.

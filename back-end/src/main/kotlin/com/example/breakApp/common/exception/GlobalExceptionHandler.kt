@@ -22,4 +22,8 @@ class GlobalExceptionHandler {
             .badRequest()
             .body(mapOf("error" to "Validation failed", "details" to errors))
     }
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<String> {
+        return ResponseEntity.badRequest().body(ex.message)
+    }
 }

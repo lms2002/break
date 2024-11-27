@@ -2,6 +2,7 @@ package com.example.breakApp.set.entity
 
 import com.example.breakApp.exercise.entity.Exercise
 import com.example.breakApp.routine.entity.Routine
+import com.example.breakApp.workoutlog.dto.CompletedSetDto
 import jakarta.persistence.*
 
 @Entity
@@ -32,3 +33,11 @@ class ExerciseSet(
     @Column(name = "is_completed", nullable = false)
     var isCompleted: Boolean = false  // 세트 완료 여부
 )
+fun ExerciseSet.toDto(): CompletedSetDto {
+    return CompletedSetDto(
+        setId = this.setId!!,
+        setNumber = this.setNumber,
+        repetitions = this.repetitions,
+        weight = this.weight
+    )
+}

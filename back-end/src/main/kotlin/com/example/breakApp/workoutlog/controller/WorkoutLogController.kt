@@ -1,5 +1,7 @@
 package com.example.breakApp.workoutlog.controller
 
+import com.example.breakApp.workoutlog.dto.CompletedWorkoutDto
+import com.example.breakApp.workoutlog.dto.StartWorkoutRequest
 import com.example.breakApp.workoutlog.dto.WorkoutLogDto
 import com.example.breakApp.workoutlog.service.WorkoutLogService
 import org.springframework.http.ResponseEntity
@@ -11,18 +13,39 @@ class WorkoutLogController(
     private val workoutLogService: WorkoutLogService
 ) {
 
-    // 특정 루틴의 모든 운동 세트 로그 조회
-    @GetMapping("/routine/{routineId}")
-    fun getWorkoutLogsForRoutine(
-        @PathVariable routineId: Long,
+    // 운동 시작
+    @PostMapping("/start")
+    fun startWorkout(
+        @RequestBody request: StartWorkoutRequest,
         @RequestHeader("Authorization") token: String
-    ): ResponseEntity<List<WorkoutLogDto>> {
-        val jwtToken = extractBearerToken(token)
-        val workoutLogs = workoutLogService.getWorkoutLogsForRoutine(routineId, jwtToken)
-        return ResponseEntity.ok(workoutLogs)
+    ): ResponseEntity<WorkoutLogDto> {
+        val extractedToken = extractBearerToken(token)
+        val workoutLog = workoutLogService.startWorkout(request.routineId, extractedToken)
+        return ResponseEntity.ok(workoutLog)
     }
 
-    // Authorization 헤더에서 Bearer 접두사 제거
+    // 운동 종료
+    @PostMapping("/{logId}/end")
+    fun endWorkout(
+        @PathVariable logId: Long,
+        @RequestHeader("Authorization") token: String
+    ): ResponseEntity<CompletedWorkoutDto> {
+        val extractedToken = extractBearerToken(token)
+        val completedWorkout = workoutLogService.endWorkout(logId, extractedToken)
+        return ResponseEntity.ok(completedWorkout)
+    }
+
+    // 완료된 운동 조회
+    @GetMapping("/completed")
+    fun getCompletedWorkouts(
+        @RequestHeader("Authorization") token: String
+    ): ResponseEntity<List<CompletedWorkoutDto>> {
+        val extractedToken = extractBearerToken(token)
+        val completedWorkouts = workoutLogService.getCompletedWorkouts(extractedToken)
+        return ResponseEntity.ok(completedWorkouts)
+    }
+
+    // Bearer 토큰 추출 메서드
     private fun extractBearerToken(header: String): String {
         if (header.startsWith("Bearer ")) {
             return header.removePrefix("Bearer ").trim()

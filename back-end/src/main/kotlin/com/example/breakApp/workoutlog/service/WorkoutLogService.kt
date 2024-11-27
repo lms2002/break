@@ -1,35 +1,105 @@
 package com.example.breakApp.workoutlog.service
 
+import com.example.breakApp.common.authority.JwtTokenProvider
+import com.example.breakApp.routine.repository.RoutineRepository
+import com.example.breakApp.set.entity.toDto
+import com.example.breakApp.set.repository.ExerciseSetRepository
+import com.example.breakApp.workoutlog.dto.CompletedExerciseDto
+import com.example.breakApp.workoutlog.dto.CompletedWorkoutDto
 import com.example.breakApp.workoutlog.dto.WorkoutLogDto
 import com.example.breakApp.workoutlog.entity.WorkoutLog
 import com.example.breakApp.workoutlog.repository.WorkoutLogRepository
-import com.example.breakApp.common.authority.JwtTokenProvider
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
+import com.example.breakApp.workoutlog.entity.toDto
+
+
 
 @Service
 class WorkoutLogService(
     private val workoutLogRepository: WorkoutLogRepository,
+    private val routineRepository: RoutineRepository,
+    private val exerciseSetRepository: ExerciseSetRepository,
     private val jwtTokenProvider: JwtTokenProvider
 ) {
 
-    fun getWorkoutLogsForRoutine(routineId: Long, token: String): List<WorkoutLogDto> {
+    @Transactional
+    fun startWorkout(routineId: Long, token: String): WorkoutLogDto {
         val userId = jwtTokenProvider.getUserIdFromToken(token)
-        val workoutLogs = workoutLogRepository.findAllByRoutineRoutineId(routineId)
 
-        return workoutLogs.filter { it.member.userId == userId }
-            .map {
-                WorkoutLogDto(
-                    logId = it.logId!!,
-                    exerciseId = it.exercise.exerciseId!!,
-                    routineId = it.routine.routineId!!,
-                    setId = it.setId.setId!!,
-                    repetitions = it.repetitions,
-                    weight = it.weight,
-                    isCompleted = it.isCompleted,
-                    startTime = it.startTime,
-                    endTime = it.endTime,
-                    duration = it.duration
+        val routine = routineRepository.findById(routineId).orElseThrow {
+            throw RuntimeException("Routine not found")
+        }
+
+        if (routine.member.userId != userId) {
+            throw RuntimeException("User not authorized to start this routine")
+        }
+
+        val workoutLog = WorkoutLog(
+            member = routine.member,
+            routine = routine,
+            startTime = LocalDateTime.now() // 운동 시작 시간 기록
+        )
+
+        val savedLog = workoutLogRepository.save(workoutLog)
+        return savedLog.toDto()
+    }
+
+    @Transactional
+    fun endWorkout(logId: Long, token: String): CompletedWorkoutDto {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
+
+        val workoutLog = workoutLogRepository.findById(logId).orElseThrow {
+            throw RuntimeException("Workout log with ID $logId not found")
+        }
+
+        if (workoutLog.member.userId != userId) {
+            throw RuntimeException("User not authorized to end this workout")
+        }
+
+        workoutLog.endTime = LocalDateTime.now()
+        workoutLogRepository.save(workoutLog)
+
+        val completedSets = exerciseSetRepository.findByRoutine(workoutLog.routine)
+            .filter { it.isCompleted }
+
+        val completedExercises = completedSets.groupBy { it.exercise.exerciseId }
+            .map { (exerciseId, sets) ->
+                CompletedExerciseDto(
+                    exerciseId = exerciseId!!,
+                    sets = sets.map { it.toDto() }
                 )
             }
+
+        return CompletedWorkoutDto(
+            routineId = workoutLog.routine.routineId!!,
+            completedExercises = completedExercises
+        )
+    }
+
+    fun getCompletedWorkouts(token: String): List<CompletedWorkoutDto> {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
+
+        val workoutLogs = workoutLogRepository.findByMemberUserId(userId)
+            .filter { it.endTime != null }
+
+        return workoutLogs.map { log ->
+            val completedSets = exerciseSetRepository.findByRoutine(log.routine)
+                .filter { it.isCompleted }
+
+            val completedExercises = completedSets.groupBy { it.exercise.exerciseId }
+                .map { (exerciseId, sets) ->
+                    CompletedExerciseDto(
+                        exerciseId = exerciseId!!,
+                        sets = sets.map { it.toDto() }
+                    )
+                }
+
+            CompletedWorkoutDto(
+                routineId = log.routine.routineId!!,
+                completedExercises = completedExercises
+            )
+        }
     }
 }
