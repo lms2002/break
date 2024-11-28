@@ -45,10 +45,10 @@ data class MemberDtoResponse(
 
 // 내 정보 수정 요청 DTO
 data class UpdateDtoRequest(
-    val password: String?,
-    val userName: String?,
-    val email: String?,
-    val gender: String?
+    val password: String? = null,
+    val userName: String? = null,
+    val email: String? = null,
+    val gender: String? = null
 )
 
 // 이메일 인증 요청 DTO

@@ -70,7 +70,7 @@ interface ApiService {
     @GET("exercises/{name}")
     suspend fun getExerciseByName(
         @Path("name") name: String
-    ): Response<BaseResponse<Exercise>>
+    ): Response<Exercise>
 
     // 카테고리별 운동 데이터를 가져오는 API
     @GET("exercises/category/{bodyPart}")
