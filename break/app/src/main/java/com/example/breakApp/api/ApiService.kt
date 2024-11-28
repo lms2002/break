@@ -155,6 +155,29 @@ interface ApiService {
     suspend fun getCompletedWorkouts(
     ): Response<List<CompletedWorkoutDto>>
 
+    @GET("notifications")
+    suspend fun getNotifications(): Response<List<NotificationDto>>
+
+    @POST("notifications/create")
+    suspend fun createNotification(
+        @Query("message") message: String,
+        @Query("type") type: String,
+        @Query("expirationDate") expirationDate: String? = null
+    ): Response<Unit>
+
+    @PUT("notifications/{notificationId}/read")
+    suspend fun markNotificationAsRead(
+        @Path("notificationId") notificationId: Long
+    ): Response<Unit>
+
+    @DELETE("notifications/{notificationId}")
+    suspend fun deleteNotification(
+        @Path("notificationId") notificationId: Long
+    ): Response<Unit>
+
+    @GET("notifications/summary")
+    suspend fun getWeeklySummary(): Response<List<NotificationDto>>
+
     // 토큰 검증
     @POST("auth/validate-token")
     suspend fun validateToken(): Response<BaseResponse<Boolean>>

@@ -202,6 +202,15 @@ data class StartWorkoutRequest(
     val routineId: Long
 )
 
+data class NotificationDto(
+    val notificationId: Long, // 알림 ID
+    val message: String, // 알림 메시지
+    val type: String, // 알림 유형
+    val isRead: Boolean, // 읽음 여부
+    val createdAt: String, // 생성 시간 (ISO 8601 형식)
+    val deletedAt: String? // 삭제된 시간 (ISO 8601 형식, nullable)
+)
+
 fun getCurrentTimestamp(): String {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
     return dateFormat.format(Date()) // 현재 시간을 포맷
