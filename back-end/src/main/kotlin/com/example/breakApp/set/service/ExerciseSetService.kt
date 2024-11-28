@@ -113,5 +113,6 @@ private fun ExerciseSet.toDto(): ExerciseSetDto = ExerciseSetDto(
     setNumber = this.setNumber,
     repetitions = this.repetitions,
     weight = this.weight,
-    isCompleted = this.isCompleted
+    isCompleted = this.isCompleted,
+    createdAt = this.createdAt
 )

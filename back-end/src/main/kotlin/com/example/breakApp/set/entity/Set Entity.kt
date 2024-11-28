@@ -4,6 +4,7 @@ import com.example.breakApp.exercise.entity.Exercise
 import com.example.breakApp.routine.entity.Routine
 import com.example.breakApp.workoutlog.dto.CompletedSetDto
 import jakarta.persistence.*
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "exercise_set")
@@ -31,7 +32,11 @@ class ExerciseSet(
     var weight: Float = 10.0f,  // 중량, 기본값 10
 
     @Column(name = "is_completed", nullable = false)
-    var isCompleted: Boolean = false  // 세트 완료 여부
+    var isCompleted: Boolean = false,
+
+    @Column(name = "created_at", nullable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now()
+    // 세트 완료 여부
 )
 fun ExerciseSet.toDto(): CompletedSetDto {
     return CompletedSetDto(
