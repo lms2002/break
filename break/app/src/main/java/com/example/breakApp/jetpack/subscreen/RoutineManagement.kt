@@ -378,27 +378,45 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                         onClick = {
                             CoroutineScope(Dispatchers.IO).launch {
                                 try {
-                                    // 루틴 삭제 API 호출
-                                    val response = RetrofitInstance.api.deleteRoutine(routineId)
-                                    if (response.isSuccessful) {
-                                        // 성공적으로 삭제한 경우 MainScreen으로 이동
-                                        withContext(Dispatchers.Main) {
-                                            navController.navigate("mainscreen") {
-                                                popUpTo("mainscreen") { inclusive = true }
+                                    // 1. 루틴에 포함된 운동 목록 가져오기
+                                    val exerciseResponse = RetrofitInstance.api.getExercisesByRoutineId(routineId)
+                                    if (exerciseResponse.isSuccessful) {
+                                        val exercises = exerciseResponse.body() ?: emptyList()
+
+                                        // 2. 각 운동 삭제 API 호출
+                                        exercises.forEach { exercise ->
+                                            val deleteExerciseResponse = RetrofitInstance.api.removeExerciseFromRoutine(
+                                                routineId = routineId,
+                                                exerciseId = exercise.exerciseId
+                                            )
+                                            if (!deleteExerciseResponse.isSuccessful) {
+                                                withContext(Dispatchers.Main) {
+                                                    println("Failed to delete exercise: ${deleteExerciseResponse.errorBody()?.string()}")
+                                                }
+                                                return@forEach
+                                            }
+                                        }
+
+                                        // 3. 루틴 삭제 API 호출
+                                        val deleteRoutineResponse = RetrofitInstance.api.deleteRoutine(routineId)
+                                        if (deleteRoutineResponse.isSuccessful) {
+                                            withContext(Dispatchers.Main) {
+                                                navController.navigate("mainscreen") {
+                                                    popUpTo("mainscreen") { inclusive = true }
+                                                }
+                                            }
+                                        } else {
+                                            withContext(Dispatchers.Main) {
+                                                println("Failed to delete routine: ${deleteRoutineResponse.errorBody()?.string()}")
                                             }
                                         }
                                     } else {
-                                        // 삭제 실패 시 오류 처리
                                         withContext(Dispatchers.Main) {
-                                            println(
-                                                "Failed to delete routine: ${
-                                                    response.errorBody()?.string()
-                                                }"
-                                            )
+                                            println("Failed to fetch exercises: ${exerciseResponse.errorBody()?.string()}")
                                         }
                                     }
                                 } catch (e: Exception) {
-                                    // 네트워크 오류 처리
+                                    // 네트워크 또는 기타 예외 처리
                                     withContext(Dispatchers.Main) {
                                         println("Error deleting routine: ${e.localizedMessage}")
                                     }
@@ -411,6 +429,7 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                     ) {
                         Text("삭제", color = Color.White)
                     }
+
 
                 }
             }

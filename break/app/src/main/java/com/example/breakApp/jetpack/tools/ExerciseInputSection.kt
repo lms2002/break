@@ -80,7 +80,7 @@ fun ExerciseInputSection(
                         id = if (isSaved) R.drawable.ic_check else R.drawable.ic_check
                     ),
                     contentDescription = if (isSaved) "Saved" else "Save Set",
-                    tint = if (isSaved) Color.Gray else Color(0xFF8B0000) // 저장 완료 시 색상 변경
+                    tint = if (isSaved) Color.White else Color.Gray// 저장 완료 시 색상 변경
                 )
             }
         }

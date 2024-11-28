@@ -130,6 +130,13 @@ interface ApiService {
         @Body exerciseSetDto: ExerciseSetDto
     ): Response<ExerciseSetDto>
 
+    // 루틴에서 특정 운동 삭제
+    @DELETE("routine-exercise/{routineId}/exercise/{exerciseId}")
+    suspend fun removeExerciseFromRoutine(
+        @Path("routineId") routineId: Long,
+        @Path("exerciseId") exerciseId: Long
+    ): Response<Unit>
+
     @DELETE("exercise-sets/{setId}")
     suspend fun deleteExerciseSet(
         @Path("setId") setId: Long
@@ -143,6 +150,10 @@ interface ApiService {
     // 운동 종료 API
     @POST("workout-logs/{logId}/end")
     suspend fun endWorkout(@Path("logId") logId: Long): Response<WorkoutLogDto>
+
+    @GET("workout-logs/completed")
+    suspend fun getCompletedWorkouts(
+    ): Response<List<CompletedWorkoutDto>>
 
     // 토큰 검증
     @POST("auth/validate-token")
