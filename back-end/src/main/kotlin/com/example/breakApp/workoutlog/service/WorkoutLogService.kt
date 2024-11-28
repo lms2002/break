@@ -1,6 +1,7 @@
 package com.example.breakApp.workoutlog.service
 
 import com.example.breakApp.common.authority.JwtTokenProvider
+import com.example.breakApp.notification.service.NotificationService
 import com.example.breakApp.routine.repository.RoutineRepository
 import com.example.breakApp.set.entity.toDto
 import com.example.breakApp.set.repository.ExerciseSetRepository
@@ -21,7 +22,8 @@ class WorkoutLogService(
     private val workoutLogRepository: WorkoutLogRepository,
     private val routineRepository: RoutineRepository,
     private val exerciseSetRepository: ExerciseSetRepository,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val notificationService: NotificationService
 ) {
 
     @Transactional
@@ -71,6 +73,13 @@ class WorkoutLogService(
                     sets = sets.map { it.toDto() }
                 )
             }
+
+        // 루틴 완료 알림 생성
+        notificationService.createNotification(
+            userId = userId,
+            message = "잘했어요! 오늘 '${workoutLog.routine.name}' 루틴을 완료했습니다! 꼭 수분 섭취를 해주세요!",
+            type = "루틴 완료"
+        )
 
         return CompletedWorkoutDto(
             routineId = workoutLog.routine.routineId!!,

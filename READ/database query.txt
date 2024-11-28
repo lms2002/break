@@ -23,8 +23,8 @@ CREATE TABLE Exercise (
     instructions TEXT,
     bodyPart VARCHAR(50) NOT NULL DEFAULT 'other',
     target VARCHAR(50) NOT NULL DEFAULT 'other',
-    gif_url VARCHAR(255),
-    equipment VARCHAR(50),
+    gifUrl VARCHAR(255),
+    equipment VARCHAR(200),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_bodyPart (bodyPart),
@@ -103,9 +103,12 @@ CREATE TABLE workout_log (
 
 -- 10. 알림(Notification) 테이블
 CREATE TABLE Notification (
-    notificationId INT AUTO_INCREMENT PRIMARY KEY,
-    userId BIGINT,
-    message TEXT NOT NULL,
-    dateTime DATETIME NOT NULL,
-    CONSTRAINT fk_user_notification FOREIGN KEY (userId) REFERENCES users(user_id) ON DELETE CASCADE
+    notification_id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 알림 ID
+    user_id BIGINT NOT NULL,                          -- 사용자 ID (외래 키)
+    message TEXT NOT NULL,                            -- 알림 메시지
+    type VARCHAR(50) NOT NULL,                        -- 알림 유형 (예: "루틴 완료", "운동 리마인더")
+    is_read BOOLEAN DEFAULT FALSE,                     -- 읽음 여부 (기본값: 읽지 않음)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,   -- 생성 시간
+	deleted_at TIMESTAMP NULL,                        -- 삭제된 시간 (삭제된 알림을 관리)
+    CONSTRAINT fk_user_notification FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
