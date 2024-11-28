@@ -27,6 +27,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -323,6 +325,9 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                 },
                                 onSaveClicked = {
                                     // 서버로 세트 저장
+                                    val currentTime = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").apply {
+                                        timeZone = java.util.TimeZone.getDefault()
+                                    }.format(java.util.Calendar.getInstance().time)
                                     CoroutineScope(Dispatchers.IO).launch {
                                         try {
                                             val response = RetrofitInstance.api.createExerciseSet(
@@ -332,7 +337,8 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                                     setNumber = index + 1,
                                                     weight = inputState.value.first,
                                                     repetitions = inputState.value.second,
-                                                    isCompleted = true
+                                                    isCompleted = true,
+                                                    createdAt = currentTime
                                                 )
                                             )
                                             if (response.isSuccessful) {

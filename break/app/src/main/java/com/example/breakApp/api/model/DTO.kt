@@ -170,7 +170,8 @@ data class ExerciseSetDto(
     val setNumber: Int,
     val repetitions: Int,
     val weight: Float,
-    val isCompleted: Boolean
+    val isCompleted: Boolean,
+    val createdAt: String
 )
 
 data class WorkoutLogDto(

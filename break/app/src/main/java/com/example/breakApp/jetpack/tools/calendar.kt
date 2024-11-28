@@ -106,13 +106,13 @@ fun DateGrid(year: Int, month: Int, onDateSelected: (year: Int, month: Int, day:
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         weekDays.forEach { day ->
-            Text(text = day, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = day, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    // 날짜 그리드
+    // 날짜 그리기
     var dayCounter = 1 // 날짜는 1일부터 시작
 
     // 각 주를 순회
@@ -124,17 +124,18 @@ fun DateGrid(year: Int, month: Int, onDateSelected: (year: Int, month: Int, day:
             // 각 주의 요일을 순회
             for (dayIndex in 0 until 7) {
                 val day = if (week == 0 && dayIndex < firstDayOfWeek) {
-                    null // 첫 주의 빈 칸
+                    null
                 } else if (dayCounter <= daysInMonth) {
                     dayCounter++ // 날짜를 증가시키고 표시
                 } else {
-                    null // 마지막 날짜 이후 빈 칸
+                    null
                 }
 
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(28.dp) // 날짜 크기 줄이기
+                        .padding(2.dp) // 간격 좁히기
                         .clickable { day?.let { onDateSelected(year, month, it) } }
                 ) {
                     day?.let {
@@ -151,7 +152,6 @@ fun DateGrid(year: Int, month: Int, onDateSelected: (year: Int, month: Int, day:
         if (dayCounter > daysInMonth) break // 모든 날짜가 표시되면 종료
     }
 }
-
 
 
 

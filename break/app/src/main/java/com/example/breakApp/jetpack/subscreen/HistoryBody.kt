@@ -106,7 +106,8 @@ fun HistoryBody(navController: NavController) {
                 ) {
                     Surface(
                         modifier = Modifier
-                            .wrapContentSize()
+                            .width(380.dp) // 더 넓은 폭 설정
+                            .wrapContentHeight()
                             .align(Alignment.Center)
                             .padding(16.dp),
                         shape = RoundedCornerShape(16.dp),
@@ -116,7 +117,7 @@ fun HistoryBody(navController: NavController) {
                         Column(
                             modifier = Modifier
                                 .padding(16.dp)
-                                .width(300.dp)
+                                .fillMaxWidth() // Column이 가로로 최대폭을 차지
                         ) {
                             Text(
                                 text = "날짜 선택",
@@ -134,6 +135,8 @@ fun HistoryBody(navController: NavController) {
                 }
             }
         }
+
+
 
         Spacer(modifier = Modifier.height(16.dp))
 

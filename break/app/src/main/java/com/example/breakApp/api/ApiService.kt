@@ -130,6 +130,12 @@ interface ApiService {
         @Body exerciseSetDto: ExerciseSetDto
     ): Response<ExerciseSetDto>
 
+    @GET("exercise-sets/routine/{routineId}")
+    suspend fun getSetsByRoutine(
+        @Path("routineId") routineId: Long
+    ): Response<List<ExerciseSetDto>>
+
+
     // 루틴에서 특정 운동 삭제
     @DELETE("routine-exercise/{routineId}/exercise/{exerciseId}")
     suspend fun removeExerciseFromRoutine(
