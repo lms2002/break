@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -35,17 +36,17 @@ fun LoginScreen(navController: NavController) {
         // 중앙의 로고 원
         Box(
             modifier = Modifier
-                .size(120.dp)
+                .size(150.dp)
                 .offset(y = -90.dp)
                 .background(Color.Gray, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_setting),
+                painter = painterResource(id = R.drawable.ic_b),
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .size(60.dp)
-                    .clickable { clearToken() } // 클릭 시 토큰 초기화
+                    .size(170.dp)
+                    .clip(CircleShape)// 클릭 시 토큰 초기화
             )
         }
 
@@ -60,7 +61,7 @@ fun LoginScreen(navController: NavController) {
                 .fillMaxWidth(0.8f)
                 .align(Alignment.BottomCenter)
                 .offset(y = -160.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000))
         ) {
             Text(text = "로그인", color = Color.White)
         }
