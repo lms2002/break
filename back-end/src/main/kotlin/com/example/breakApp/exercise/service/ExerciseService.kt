@@ -48,8 +48,12 @@ class ExerciseService(
     @Transactional
     fun fetchAndSaveExercises() {
         // 기존 데이터 삭제 후 새로운 데이터로 업데이트
-        exerciseRepository.deleteAll()
+        exerciseRepository.deleteAllExercises()
         logger.info("기존 데이터가 삭제되었습니다.")
+
+        exerciseRepository.resetAutoIncrement()
+        logger.info("AUTO_INCREMENT 값이 초기화되었습니다.")
+
 
         try {
             // API 요청 생성
