@@ -1,7 +1,10 @@
 package com.example.breakApp.exercise.repository
 
 import com.example.breakApp.exercise.entity.Exercise
+import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -26,4 +29,14 @@ interface ExerciseRepository : JpaRepository<Exercise, Long> {
     fun findByNameContainingIgnoreCase(name: String): List<Exercise>
     // findByNameContainingIgnoreCase: 부분 일치 검색을 통해 특정 문자열이 포함된 운동 데이터를 조회합니다.
     // 대소문자를 구분하지 않고 검색하여 유연하게 이름으로 운동을 찾을 수 있습니다.
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM exercise", nativeQuery = true)
+    fun deleteAllExercises()
+
+    @Modifying
+    @Transactional
+    @Query(value = "ALTER TABLE exercise AUTO_INCREMENT = 1", nativeQuery = true)
+    fun resetAutoIncrement()
 }
