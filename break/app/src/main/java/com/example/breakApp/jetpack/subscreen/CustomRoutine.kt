@@ -292,7 +292,7 @@ fun ExerciseList(selectedTarget: String, selectedRoutineId: Long) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_add),
                                     contentDescription = "Add to Routine",
-                                    tint = Color(0xFF8B0000)
+                                    tint = Color(0xFFBA0000)
                                 )
                             }
                         }

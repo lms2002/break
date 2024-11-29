@@ -13,11 +13,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.breakApp.MyApplication
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.FindIdRequest
 import com.example.breakApp.api.model.LoginDto
-import com.example.breakApp.api.model.ResetPasswordRequest
 import com.example.breakApp.jetpack.tools.DialogType
 import com.example.breakApp.jetpack.tools.FindDialog
 import com.example.breakApp.tools.PreferenceManager
@@ -122,7 +120,7 @@ fun LoginTab(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBA0000))
             ) {
                 Text(text = "로그인", color = Color.White)
             }

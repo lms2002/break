@@ -242,7 +242,7 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                         }
                     },
                     modifier = Modifier.weight(1f), // 버튼 크기를 균등하게 분배
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
                     enabled = isWorkoutInProgress // 운동이 진행 중일 때만 종료 버튼 활성화
                 ) {
                     Text("운동 종료", color = Color.White)

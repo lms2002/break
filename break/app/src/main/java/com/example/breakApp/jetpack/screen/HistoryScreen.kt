@@ -46,7 +46,7 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = Color(0xFF8B0000) // 테마 색상
+                        color = Color(0xFFBA0000) // 테마 색상
                     )
                 }
             ) {

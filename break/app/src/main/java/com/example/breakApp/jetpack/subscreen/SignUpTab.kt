@@ -125,7 +125,7 @@ fun SignUpTab(navController: NavController) {
                         .weight(3f)
                         .padding(start = 8.dp)
                         .height(48.dp)
-                        .background(Color(0xFF8B0000), shape = MaterialTheme.shapes.small)
+                        .background(Color(0xFFBA0000), shape = MaterialTheme.shapes.small)
                         .clickable {
                             scope.launch {
                                 try {

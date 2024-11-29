@@ -2,7 +2,6 @@ package com.example.breakApp.jetpack.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
@@ -61,7 +60,7 @@ fun LoginScreen(navController: NavController) {
                 .fillMaxWidth(0.8f)
                 .align(Alignment.BottomCenter)
                 .offset(y = -160.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000))
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBA0000))
         ) {
             Text(text = "로그인", color = Color.White)
         }

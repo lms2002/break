@@ -135,7 +135,7 @@ fun DetailInBody(navController: NavController, selectedDate: String) {
                     .padding(horizontal = 8.dp)
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp), // 둥근 모서리
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)) // 어두운 빨간색
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBA0000)) // 어두운 빨간색
             ) {
                 Text(text = "삭제", color = Color.White, fontSize = 16.sp)
             }
