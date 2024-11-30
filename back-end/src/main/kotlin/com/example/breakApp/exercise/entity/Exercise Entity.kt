@@ -17,22 +17,22 @@ data class Exercise(
     // exerciseId 필드는 Long 타입의 기본 키로, 데이터베이스에서 생성된 ID를 저장합니다.
 
     @Column(nullable = true)
-    val name: String?,
+    var name: String?,
 
     @Column(columnDefinition = "TEXT", nullable = true)
-    val instructions: String? = null,
+    var instructions: String? = null,
 
     @Column(nullable = false)
-    val bodyPart: String = "other",
+    var bodyPart: String = "other",
 
     @Column(nullable = false)
-    val target: String = "other",
+    var target: String = "other",
 
     @Column(nullable = true)
-    val equipment: String? = null,
+    var equipment: String? = null,
 
     @Column(nullable = true)
-    val gifUrl: String? = null // GIF URL 필드 추가
+    var gifUrl: String? = null // GIF URL 필드 추가
 )
 fun Exercise.toDto(): ExerciseDto {
     return ExerciseDto(
