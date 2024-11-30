@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.breakApp.R
-import com.example.breakApp.api.ApiService
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.CreateInBodyDto
 import com.example.breakApp.jetpack.tools.Calendar
@@ -62,8 +61,8 @@ fun HistoryBody(navController: NavController) {
         // 날짜 선택 TextField
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .fillMaxWidth(0.9f)
+                .padding(bottom = 12.dp, top = 6.dp)
                 .clickable {
                     showCalendar = true // 캘린더 표시
                 }
@@ -82,7 +81,7 @@ fun HistoryBody(navController: NavController) {
                 contentDescription = "Edit Date",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(18.dp)
                     .clickable {
                         if (selectedDate.isNotEmpty()) {
                             // 선택된 날짜를 포함하여 DetailInBody로 이동
@@ -136,7 +135,10 @@ fun HistoryBody(navController: NavController) {
             }
         }
 
-
+// 에러 메시지 표시
+        errorMessage?.let {
+            Text(text = it, color = Color(0xFFBA0000), modifier = Modifier.padding(top = 12.dp))
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -146,7 +148,10 @@ fun HistoryBody(navController: NavController) {
                 .fillMaxWidth()
                 .padding(8.dp),
             shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.elevatedCardElevation(4.dp)
+            elevation = CardDefaults.elevatedCardElevation(4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF242424) // 카드 배경 색상
+            )
         ) {
             Column(
                 modifier = Modifier
@@ -216,9 +221,9 @@ fun HistoryBody(navController: NavController) {
                 })
             },
             modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                .fillMaxWidth(0.6f)
+                .height(42.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBA0000))
         ) {
             Text(text = "저장", color = Color.White, fontSize = 18.sp)
         }
@@ -228,10 +233,7 @@ fun HistoryBody(navController: NavController) {
             CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
         }
 
-        // 에러 메시지 표시
-        errorMessage?.let {
-            Text(text = it, color = Color.Red, modifier = Modifier.padding(top = 16.dp))
-        }
+
     }
 }
 
@@ -260,9 +262,7 @@ fun saveInBody(
             }
         }
     }
-}
-
-@Composable
+}@Composable
 fun UserInputBox(label: String, value: String, unit: String, onValueChange: (String) -> Unit) {
     Column(
         modifier = Modifier
@@ -270,6 +270,7 @@ fun UserInputBox(label: String, value: String, unit: String, onValueChange: (Str
             .padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.Start
     ) {
+        // 레이블 표시
         Text(
             text = label,
             fontSize = 14.sp,
@@ -277,25 +278,34 @@ fun UserInputBox(label: String, value: String, unit: String, onValueChange: (Str
             modifier = Modifier.padding(bottom = 4.dp)
         )
 
-        BasicTextField(
-            value = value,
-            onValueChange = { if (it.length <= 6) onValueChange(it) },
-            singleLine = true,
-            textStyle = TextStyle(color = Color.Black),
+        // 입력 필드와 단위를 나란히 배치
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                .padding(8.dp)
-        )
-
-        if (unit.isNotEmpty()) {
-            Text(
-                text = unit,
-                color = Color.Gray,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(start = 4.dp)
+                .padding(horizontal = 8.dp, vertical = 6.dp), // 내부 패딩
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = { if (it.length <= 6) onValueChange(it) },
+                singleLine = true,
+                textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
+                modifier = Modifier
+                    .weight(1f) // 입력 필드가 가능한 많은 공간 차지
+                    .height(24.dp) // 입력 필드의 높이를 줄임
+                    .padding(end = 8.dp) // 단위와 간격 조정
             )
+
+            // 단위 텍스트
+            if (unit.isNotEmpty()) {
+                Text(
+                    text = unit,
+                    color = Color.DarkGray,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
         }
     }
 }
-

@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -38,7 +39,7 @@ fun DetailInBody(navController: NavController, selectedDate: String) {
                     val data = response.body()?.data ?: emptyList()
                     inBodyData = data.find { it.measurementDate == selectedDate }
                     if (inBodyData == null) {
-                        errorMessage = "선택된 날짜에 해당하는 데이터가 없습니다."
+                        errorMessage = " 선택된 날짜에 해당하는 데이터가 없습니다. \n인바디를 새로 저장해주세요."
                     }
                 } else {
                     errorMessage = "Error: ${response.errorBody()?.string()}"
@@ -62,11 +63,18 @@ fun DetailInBody(navController: NavController, selectedDate: String) {
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else if (errorMessage != null) {
-            Text(
-                text = errorMessage ?: "",
-                color = Color.Red,
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .padding(bottom = 48.dp),
+                contentAlignment = Alignment.Center // Box 내부 내용을 가운데 정렬
+            ) {
+                Text(
+                    text = errorMessage ?: "",
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center // 텍스트를 가운데 정렬
+                )
+            }
         } else if (inBodyData != null) {
             Column(
                 modifier = Modifier

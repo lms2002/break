@@ -1,6 +1,7 @@
 package com.example.breakApp.jetpack.subscreen
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -93,6 +94,7 @@ fun HistoryExercise(navController: NavController) {
         CompletedSetsDialog(
             sets = sortedSets,
             exercises = exercises, // 운동 목록을 전달
+            selectedDate = selectedDate,
             onDismiss = { showDialog = false }
         )
     }
@@ -102,24 +104,50 @@ fun HistoryExercise(navController: NavController) {
 fun CompletedSetsDialog(
     sets: List<ExerciseSetDto>,
     exercises: List<Exercise>, // 운동 목록 추가
+    selectedDate: String, // 선택된 날짜
     onDismiss: () -> Unit
 ) {
+    // 선택된 날짜 포맷 변환
+    val formattedDate = remember(selectedDate) {
+        if (selectedDate.isNotEmpty()) {
+            try {
+                val parts = selectedDate.split("-")
+                "${parts[1].toInt()}월 ${parts[2].toInt()}일" // MM월 DD일 포맷
+            } catch (e: Exception) {
+                "알 수 없는 날짜"
+            }
+        } else {
+            "알 수 없는 날짜"
+        }
+    }
+
     AlertDialog(
         onDismissRequest = { onDismiss() },
-        title = { Text("운동 기록") },
+        title = { Text(formattedDate) }, // 선택된 날짜를 제목으로 표시
         text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                sets.forEach { set ->
-                    // ExerciseSetDto에서 운동 ID를 찾아 운동 이름을 가져옵니다.
-                    val exerciseName = exercises.find { it.exerciseId == set.exerciseId }?.name ?: "알 수 없는 운동"
-                    Text(
-                        text = "운동: $exerciseName", // 운동 이름 추가
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "세트: ${set.setNumber} | ${set.repetitions}회 * ${set.weight}kg ",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp), // 전체 리스트에 패딩 추가
+                verticalArrangement = Arrangement.spacedBy(2.dp) // 각 항목 간 간격 설정
+            ) {
+                item {
+                    sets.forEach { set ->
+                        // ExerciseSetDto에서 운동 ID를 찾아 운동 이름을 가져옵니다.
+                        val exerciseName = exercises.find { it.exerciseId == set.exerciseId }?.name ?: "알 수 없는 운동"
+
+                        // 운동 이름
+                        Text(
+                            text = "운동: $exerciseName", // 운동 이름 추가
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+
+                        // 세트 정보
+                        Text(
+                            text = "세트: ${set.setNumber} | ${set.repetitions}회 * ${set.weight}kg",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         },
