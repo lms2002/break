@@ -144,7 +144,7 @@ fun CompletedSetsDialog(
 
                         // 세트 정보
                         Text(
-                            text = "세트: ${set.setNumber} | ${set.repetitions}회 * ${set.weight}kg",
+                            text = "세트: ${set.setNumber} | ${set.weight}kg * ${set.repetitions}회",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

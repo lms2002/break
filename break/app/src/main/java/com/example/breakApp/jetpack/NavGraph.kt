@@ -10,7 +10,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.breakApp.jetpack.screen.*
 import com.example.breakApp.jetpack.subscreen.*
-import com.example.breakApp.jetpack.tools.DailyMemoScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -31,14 +30,11 @@ fun NavGraph(navController: NavHostController) {
         composable("notification") { NotificationTab(navController) }
         composable("settings") { SettingTab(navController) }
         composable("loginTab") { LoginTab(navController) }
+        composable("editProfile") { EditProfile(navController = navController) }
         composable("signupTab") { SignUpTab(navController) }
         composable("detailInBody/{selectedDate}") { backStackEntry ->
             val selectedDate = backStackEntry.arguments?.getString("selectedDate") ?: ""
             DetailInBody(navController = navController, selectedDate = selectedDate)
-        }
-        composable("dailyMemo/{selectedDate}") { backStackEntry ->
-            val selectedDate = backStackEntry.arguments?.getString("selectedDate")
-            DailyMemoScreen(navController = navController, selectedDate = selectedDate ?: "")
         }
         composable(
             route = "routineManagement/{routineId}/{routineName}",

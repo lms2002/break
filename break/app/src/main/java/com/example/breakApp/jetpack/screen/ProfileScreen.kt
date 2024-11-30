@@ -98,7 +98,7 @@ fun ProfileScreen(navController: NavController, selectedItemIndex: Int) {
             }
 
             // 메뉴 항목
-            val menuItems = listOf("모든 메모", "친구", "친구 초대")
+            val menuItems = listOf("정보 수정", "모든 메모", "친구", "친구 초대")
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -110,9 +110,10 @@ fun ProfileScreen(navController: NavController, selectedItemIndex: Int) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                /**
-                                 * 기능 넣기
-                                 */
+                                when (item) {
+                                    "정보 수정" -> navController.navigate("editProfile") // 정보 수정 선택 시 이동
+                                    // 다른 항목의 동작 추가 가능
+                                }
                             }
                             .padding(vertical = 8.dp),
                         style = MaterialTheme.typography.bodyLarge
