@@ -38,6 +38,10 @@ fun SignUpTab(navController: NavController) {
     var selectedGender by remember { mutableStateOf("") }
     var verificationCode by remember { mutableStateOf("") }
 
+    //에러 변수
+    var idError by remember { mutableStateOf("") }
+    var pwError by remember { mutableStateOf("") }
+    var confirmPwError by remember { mutableStateOf("") }
 
     // UI 상태 변수
     var statusMessage by remember { mutableStateOf("") }
@@ -96,10 +100,17 @@ fun SignUpTab(navController: NavController) {
             Text(text = "아이디", color = Color.White)
             BasicTextField(
                 value = loginId,
-                onValueChange = { loginId = it },
+                onValueChange = {
+                    loginId = it
+                    idError = if (!it.matches(Regex("^[a-zA-Z0-9]{5,20}$"))) {
+                        "영문자와 숫자를 포함한 5~20자를 입력해주세요"
+                    } else {
+                        ""
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(top = 8.dp)
                     .height(36.dp)
                     .background(Color.Gray, shape = MaterialTheme.shapes.small)
                     .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -120,15 +131,30 @@ fun SignUpTab(navController: NavController) {
                     }
                 }
             )
-
+            // 아이디 에러 메시지
+            if (idError.isNotEmpty()) {
+                Text(
+                    text = idError,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
 
             Text(text = "비밀번호", color = Color.White)
             BasicTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    pwError = if (!it.matches(Regex("^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#\$%^&*])[a-zA-Z0-9!@#\$%^&*]{8,20}$"))) {
+                        "영문, 숫자, 특수문자를 포함한 8~20자를 입력해주세요"
+                    } else {
+                        ""
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp) // 동일한 패딩
+                    .padding(top = 4.dp) // 동일한 패딩
                     .height(36.dp) // 동일한 높이
                     .background(Color.Gray, shape = MaterialTheme.shapes.small)
                     .padding(horizontal = 10.dp, vertical = 6.dp), // 동일한 내부 패딩
@@ -150,12 +176,25 @@ fun SignUpTab(navController: NavController) {
                     }
                 }
             )
-
+            if (pwError.isNotEmpty()) {
+                Text(
+                    text = pwError,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
 
             Text(text = "비밀번호 확인", color = Color.White, modifier = Modifier.padding(bottom = 8.dp))
             BasicTextField(
                 value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                onValueChange = { confirmPassword = it
+                    confirmPwError = if (password != it) {
+                        "비밀번호가 일치하지 않습니다"
+                    } else {
+                        ""
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(36.dp) // 필드 높이 설정
@@ -179,6 +218,14 @@ fun SignUpTab(navController: NavController) {
                     }
                 }
             )
+            if (confirmPwError.isNotEmpty()) {
+                Text(
+                    text = confirmPwError,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
 
             Text(text = "이메일", color = Color.White, modifier = Modifier.padding(vertical = 8.dp))
             BasicTextField(
