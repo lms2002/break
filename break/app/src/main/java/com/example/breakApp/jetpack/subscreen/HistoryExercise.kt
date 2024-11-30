@@ -117,7 +117,7 @@ fun CompletedSetsDialog(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = "세트: ${set.setNumber} | ${set.repetitions}회 * ${set.weight}kg (${set.createdAt})",
+                        text = "세트: ${set.setNumber} | ${set.repetitions}회 * ${set.weight}kg ",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

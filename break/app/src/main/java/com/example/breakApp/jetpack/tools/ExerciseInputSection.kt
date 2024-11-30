@@ -16,11 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.breakApp.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.breakApp.api.RetrofitInstance
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun ExerciseInputSection(
@@ -34,8 +29,7 @@ fun ExerciseInputSection(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
@@ -57,14 +51,15 @@ fun ExerciseInputSection(
             InputField(
                 label = "무게 (kg)",
                 value = weight.toString(),
-                onValueChange = { onWeightChange(it.toFloatOrNull() ?: 0f) }
+                onValueChange = { onWeightChange(it.toFloatOrNull() ?: 20.0f) }
             )
 
             // Repetitions 입력
             InputField(
                 label = "횟수",
                 value = repetitions.toString(),
-                onValueChange = { onRepetitionsChange(it.toIntOrNull() ?: 0) }
+                onValueChange = { onRepetitionsChange(it.toIntOrNull() ?: 10) },
+                modifier = Modifier.padding(start = 12  .dp)
             )
 
             // 저장 버튼
@@ -78,10 +73,10 @@ fun ExerciseInputSection(
             ) {
                 Icon(
                     painter = painterResource(
-                        id = if (isSaved) R.drawable.ic_check else R.drawable.ic_check
+                        id = if (isSaved) R.drawable.ic_check else R.drawable.ic_square
                     ),
                     contentDescription = if (isSaved) "Saved" else "Save Set",
-                    tint = if (isSaved) Color.White else Color.Gray// 저장 완료 시 색상 변경
+                    tint = if (isSaved) Color.White else Color.DarkGray// 저장 완료 시 색상 변경
                 )
             }
         }
@@ -91,16 +86,29 @@ fun ExerciseInputSection(
 @Composable
 fun InputField(label: String, value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, fontSize = 14.sp, color = Color.Gray)
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
+        Text(text = label, fontSize = 14.sp, color = Color.Gray,
+            modifier = Modifier.padding(bottom = 4.dp))
+        Box(
             modifier = Modifier
                 .width(80.dp)
                 .height(40.dp)
-                .background(Color.LightGray, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                .padding(8.dp),
-            textStyle = TextStyle(fontSize = 14.sp, color = Color.Black)
-        )
+                .background(Color.LightGray, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center // 텍스트를 박스의 오른쪽 아래로 정렬
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 8.dp),
+                textStyle = TextStyle(
+                    fontSize = 17.sp,
+                    color = Color.Black,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center // 텍스트를 중앙 정렬
+                ),
+                singleLine = true // 텍스트가 한 줄로 유지되도록 설정
+
+            )
+        }
     }
 }

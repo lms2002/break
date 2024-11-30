@@ -2,6 +2,7 @@ package com.example.breakApp.jetpack.subscreen
 
 import com.example.breakApp.jetpack.tools.ExerciseInputSection
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -301,35 +302,57 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                 )
 
                                 // 삭제 아이콘
-                                IconButton(
-                                    onClick = {
-                                        // 삭제 로직: 운동을 삭제하는 함수 호출
-                                        exerciseInputSections = exerciseInputSections.toMutableMap().apply {
-                                            remove(exercise.exerciseId)
+                                Text(
+                                    text = "삭제",
+                                    color = Color.Gray, // 회색 텍스트 색상
+                                    fontSize = 14.sp, // 적절한 글씨 크기
+                                    modifier = Modifier
+                                        .padding(horizontal = 4.dp) // 약간의 패딩 추가
+                                        .clickable {
+                                            // 삭제 로직: 운동을 삭제하는 함수 호출
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                try {
+                                                    val response = RetrofitInstance.api.removeExerciseFromRoutine(
+                                                        routineId = routineId, // 루틴 ID
+                                                        exerciseId = exercise.exerciseId // 운동 ID
+                                                    )
+                                                    if (response.isSuccessful) {
+                                                        // 삭제 성공 시 UI 업데이트
+                                                        exerciseInputSections = exerciseInputSections.toMutableMap().apply {
+                                                            remove(exercise.exerciseId)
+                                                        }
+                                                        exercises = exercises.filter { it.exerciseId != exercise.exerciseId }
+                                                    } else {
+                                                        // 에러 처리
+                                                        withContext(Dispatchers.Main) {
+                                                            println("Failed to delete exercise: ${response.errorBody()?.string()}")
+                                                        }
+                                                    }
+                                                } catch (e: Exception) {
+                                                    // 네트워크 에러 처리
+                                                    withContext(Dispatchers.Main) {
+                                                        println("Error deleting exercise: ${e.localizedMessage}")
+                                                    }
+                                                }
+                                            }
                                         }
-                                        exercises = exercises.filter { it.exerciseId != exercise.exerciseId }
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_delete),
-                                        contentDescription = "Delete Exercise",
-                                        tint = Color.Red // 아이콘 색상
-                                    )
-                                }
+                                )
+
                             }
 
-                            // 세트 입력 섹션
                             // 세트 입력 섹션
                             exerciseInputSections[exercise.exerciseId]?.forEachIndexed { index, (isSaved, inputState, setId) ->
                                 Column(
                                     modifier = Modifier
-                                        .fillMaxWidth(),
+                                        .fillMaxWidth()
+                                        .padding(start = 40.dp)
+                                        .align(Alignment.CenterHorizontally),
                                     horizontalAlignment = Alignment.CenterHorizontally // 가로 정렬을 가운데로 설정
                                 ) {
                                     ExerciseInputSection(
                                         label = "세트 ${index + 1}",
-                                        weight = inputState.value.first,
-                                        repetitions = inputState.value.second,
+                                        weight = inputState.value.first.takeIf { it != 0f } ?: 20.0f,
+                                        repetitions = inputState.value.second.takeIf { it != 0 } ?: 10,
                                         isSaved = isSaved,
                                         onWeightChange = { newWeight ->
                                             inputState.value = inputState.value.copy(first = newWeight)
