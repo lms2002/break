@@ -44,8 +44,8 @@ fun LoginScreen(navController: NavController) {
                 painter = painterResource(id = R.drawable.ic_b),
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .size(170.dp)
-                    .clip(CircleShape)// 클릭 시 토큰 초기화
+                    .size(150.dp)
+                    .clip(CircleShape)
             )
         }
 

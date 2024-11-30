@@ -1,18 +1,24 @@
 package com.example.breakApp.jetpack.subscreen
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.breakApp.R
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.FindIdRequest
 import com.example.breakApp.api.model.LoginDto
@@ -36,10 +42,26 @@ fun LoginTab(navController: NavController) {
             .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
+        Box(
+            modifier = Modifier
+                .size(130.dp)
+                .offset(y = -200.dp)
+                .background(Color.Gray, shape = CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_b),
+                contentDescription = "Logo",
+                modifier = Modifier
+                    .size(130.dp)
+                    .clip(CircleShape)
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
-                .padding(16.dp),
+                .padding(16.dp, top = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -60,9 +82,26 @@ fun LoginTab(navController: NavController) {
                 onValueChange = { loginId = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp)
+                    .padding(vertical = 8.dp)
+                    .height(36.dp)
                     .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(12.dp)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                textStyle = TextStyle(color = Color.White, fontSize = 16.sp),
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (loginId.isEmpty()) {
+                            Text(
+                                text = "ID", // 플레이스홀더 텍스트
+                                color = Color.LightGray, // 플레이스홀더 색상
+                                fontSize = 16.sp
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
             )
 
             // 비밀번호 입력 필드
@@ -71,12 +110,28 @@ fun LoginTab(navController: NavController) {
                 onValueChange = { password = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp)
+                    .padding(vertical = 8.dp) // 동일한 패딩
+                    .height(36.dp) // 동일한 높이
                     .background(Color.Gray, shape = MaterialTheme.shapes.small)
-                    .padding(12.dp),
-                visualTransformation = PasswordVisualTransformation()
+                    .padding(horizontal = 10.dp, vertical = 6.dp), // 동일한 내부 패딩
+                visualTransformation = PasswordVisualTransformation(),
+                textStyle = TextStyle(color = Color.White, fontSize = 16.sp), // 동일한 텍스트 크기
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (password.isEmpty()) {
+                            Text(
+                                text = "PW", // 플레이스홀더 텍스트
+                                color = Color.LightGray,
+                                fontSize = 16.sp // 동일한 플레이스홀더 크기
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
             )
-
             // 로그인 버튼
             Button(
                 onClick = {
@@ -138,7 +193,8 @@ fun LoginTab(navController: NavController) {
                         dialogType = DialogType.ID_FIND
                         showDialog = true
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White)
                 ) {
                     Text("ID찾기", color = Color.Black, fontSize = 12.sp)

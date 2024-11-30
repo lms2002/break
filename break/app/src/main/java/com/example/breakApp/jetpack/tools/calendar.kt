@@ -118,7 +118,9 @@ fun DateGrid(year: Int, month: Int, onDateSelected: (year: Int, month: Int, day:
     // 각 주를 순회
     for (week in 0 until 6) { // 최대 6줄 (주) 필요
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             // 각 주의 요일을 순회

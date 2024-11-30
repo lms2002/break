@@ -39,7 +39,8 @@ fun ExerciseInputSection(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -49,19 +50,19 @@ fun ExerciseInputSection(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
-                modifier = Modifier.padding(end = 8.dp)
+                modifier = Modifier.padding(top = 18.dp)
             )
 
             // Weight 입력
             InputField(
-                label = "Weight (kg)",
+                label = "무게 (kg)",
                 value = weight.toString(),
                 onValueChange = { onWeightChange(it.toFloatOrNull() ?: 0f) }
             )
 
             // Repetitions 입력
             InputField(
-                label = "Repetitions",
+                label = "횟수",
                 value = repetitions.toString(),
                 onValueChange = { onRepetitionsChange(it.toIntOrNull() ?: 0) }
             )
@@ -88,7 +89,7 @@ fun ExerciseInputSection(
 }
 
 @Composable
-fun InputField(label: String, value: String, onValueChange: (String) -> Unit) {
+fun InputField(label: String, value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = label, fontSize = 14.sp, color = Color.Gray)
         BasicTextField(

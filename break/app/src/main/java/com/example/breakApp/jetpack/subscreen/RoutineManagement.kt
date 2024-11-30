@@ -3,6 +3,8 @@ package com.example.breakApp.jetpack.subscreen
 import com.example.breakApp.jetpack.tools.ExerciseInputSection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -38,7 +40,9 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
     var isEditing by remember { mutableStateOf(false) } // 편집 상태 관리
     var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
     var exerciseInputSections by remember {
-        mutableStateOf<Map<Long, List<Triple<Boolean, MutableState<Pair<Float, Int>>, Long?>>>>(emptyMap())
+        mutableStateOf<Map<Long, List<Triple<Boolean, MutableState<Pair<Float, Int>>, Long?>>>>(
+            emptyMap()
+        )
     }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -122,12 +126,17 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                                     userId = userId!!, // 가져온 사용자 ID 사용
                                                     name = newRoutineName
                                                 )
-                                                val response = RetrofitInstance.api.updateRoutine(routineId, updatedRoutine)
+                                                val response = RetrofitInstance.api.updateRoutine(
+                                                    routineId,
+                                                    updatedRoutine
+                                                )
                                                 if (response.isSuccessful) {
                                                     currentRoutineName = newRoutineName
                                                     isEditing = false // 편집 상태 종료
                                                 } else {
-                                                    errorMessage = "Error updating routine: ${response.errorBody()?.string()}"
+                                                    errorMessage = "Error updating routine: ${
+                                                        response.errorBody()?.string()
+                                                    }"
                                                 }
                                             } catch (e: Exception) {
                                                 errorMessage = "Error: ${e.localizedMessage}"
@@ -194,11 +203,14 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                 if (response.isSuccessful) {
                                     val workoutLog = response.body()
                                     workoutLogId = workoutLog?.logId
-                                    startTime = workoutLog?.startTime.toString() // LocalDateTime -> String
+                                    startTime =
+                                        workoutLog?.startTime.toString() // LocalDateTime -> String
                                     isWorkoutInProgress = true
                                 } else {
                                     withContext(Dispatchers.Main) {
-                                        errorMessage = "Failed to start workout: ${response.errorBody()?.string()}"
+                                        errorMessage = "Failed to start workout: ${
+                                            response.errorBody()?.string()
+                                        }"
                                     }
                                 }
                             } catch (e: Exception) {
@@ -226,11 +238,14 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                                     val response = RetrofitInstance.api.endWorkout(logId)
                                     if (response.isSuccessful) {
                                         val completedWorkout = response.body()
-                                        endTime = completedWorkout?.endTime.toString() // LocalDateTime -> String
+                                        endTime =
+                                            completedWorkout?.endTime.toString() // LocalDateTime -> String
                                         isWorkoutInProgress = false
                                     } else {
                                         withContext(Dispatchers.Main) {
-                                            errorMessage = "Failed to end workout: ${response.errorBody()?.string()}"
+                                            errorMessage = "Failed to end workout: ${
+                                                response.errorBody()?.string()
+                                            }"
                                         }
                                     }
                                 } catch (e: Exception) {
@@ -261,185 +276,224 @@ fun RoutineManagement(navController: NavController, routineId: Long, routineName
                     )
                 }
             } else {
-                exercises.forEach { exercise ->
-                    Column {
-                        Row(
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(exercises) { exercise ->
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                text = exercise.name,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = {
-                                // 세트 추가
-                                exerciseInputSections = exerciseInputSections.toMutableMap().apply {
-                                    val currentSets = getOrDefault(exercise.exerciseId, emptyList())
-                                    this[exercise.exerciseId] = currentSets + Triple(
-                                        false, // 저장되지 않은 세트
-                                        mutableStateOf(Pair(0f, 0)), // 기본 weight와 repetitions 값
-                                        null // setId는 아직 null
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween // 이름과 삭제 버튼을 양쪽 끝으로 정렬
+                            ) {
+                                // 운동 이름
+                                Text(
+                                    text = exercise.name,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                // 삭제 아이콘
+                                IconButton(
+                                    onClick = {
+                                        // 삭제 로직: 운동을 삭제하는 함수 호출
+                                        exerciseInputSections = exerciseInputSections.toMutableMap().apply {
+                                            remove(exercise.exerciseId)
+                                        }
+                                        exercises = exercises.filter { it.exerciseId != exercise.exerciseId }
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_delete),
+                                        contentDescription = "Delete Exercise",
+                                        tint = Color.Red // 아이콘 색상
                                     )
                                 }
-                            }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_add),
-                                    contentDescription = "Add Set"
-                                )
                             }
-                            IconButton(onClick = {
-                                // 세트 삭제
-                                exerciseInputSections = exerciseInputSections.toMutableMap().apply {
-                                    val currentSets = getOrDefault(
-                                        exercise.exerciseId,
-                                        emptyList()
-                                    ).toMutableList()
-                                    if (currentSets.isNotEmpty()) {
-                                        currentSets.removeAt(currentSets.size - 1) // 마지막 세트를 삭제
-                                        this[exercise.exerciseId] = currentSets
-                                    }
+
+                            // 세트 입력 섹션
+                            // 세트 입력 섹션
+                            exerciseInputSections[exercise.exerciseId]?.forEachIndexed { index, (isSaved, inputState, setId) ->
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally // 가로 정렬을 가운데로 설정
+                                ) {
+                                    ExerciseInputSection(
+                                        label = "세트 ${index + 1}",
+                                        weight = inputState.value.first,
+                                        repetitions = inputState.value.second,
+                                        isSaved = isSaved,
+                                        onWeightChange = { newWeight ->
+                                            inputState.value = inputState.value.copy(first = newWeight)
+                                        },
+                                        onRepetitionsChange = { newRepetitions ->
+                                            inputState.value = inputState.value.copy(second = newRepetitions)
+                                        },
+                                        onSaveClicked = {
+                                            val currentTime = SimpleDateFormat(
+                                                "yyyy-MM-dd'T'HH:mm:ss",
+                                                Locale.getDefault()
+                                            ).format(java.util.Date())
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                try {
+                                                    val response = RetrofitInstance.api.createExerciseSet(
+                                                        ExerciseSetDto(
+                                                            routineId = routineId,
+                                                            exerciseId = exercise.exerciseId,
+                                                            setNumber = index + 1,
+                                                            weight = inputState.value.first,
+                                                            repetitions = inputState.value.second,
+                                                            isCompleted = true,
+                                                            createdAt = currentTime
+                                                        )
+                                                    )
+                                                    if (response.isSuccessful) {
+                                                        exerciseInputSections = exerciseInputSections.toMutableMap().apply {
+                                                            val currentSets = getOrDefault(exercise.exerciseId, emptyList()).toMutableList()
+                                                            currentSets[index] = Triple(
+                                                                true,
+                                                                inputState,
+                                                                response.body()?.setId
+                                                            )
+                                                            this[exercise.exerciseId] = currentSets
+                                                        }
+                                                    } else {
+                                                        withContext(Dispatchers.Main) {
+                                                            errorMessage = "Failed to save set: ${response.errorBody()?.string()}"
+                                                        }
+                                                    }
+                                                } catch (e: Exception) {
+                                                    withContext(Dispatchers.Main) {
+                                                        errorMessage = "Error saving set: ${e.localizedMessage}"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    )
                                 }
-                            }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_minus),
-                                    contentDescription = "Remove Set"
-                                )
+                            }
+
+                            // 세트 추가/삭제 버튼
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
+                                horizontalArrangement = Arrangement.Center // 버튼을 가운데로 배치
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        // 세트 추가 로직
+                                        exerciseInputSections = exerciseInputSections.toMutableMap().apply {
+                                            val currentSets = getOrDefault(exercise.exerciseId, emptyList())
+                                            this[exercise.exerciseId] = currentSets + Triple(
+                                                false, // 저장되지 않은 세트
+                                                mutableStateOf(Pair(0f, 0)), // 초기 weight와 repetitions 값
+                                                null // setId는 null
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_add),
+                                        contentDescription = "세트 추가",
+                                        tint = Color.White
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(72.dp)) // 두 버튼 사이의 간격 조정
+
+                                IconButton(
+                                    onClick = {
+                                        // 세트 삭제 로직
+                                        exerciseInputSections = exerciseInputSections.toMutableMap().apply {
+                                            val currentSets = getOrDefault(exercise.exerciseId, emptyList()).toMutableList()
+                                            if (currentSets.isNotEmpty()) {
+                                                currentSets.removeAt(currentSets.size - 1)
+                                                this[exercise.exerciseId] = currentSets
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_minus),
+                                        contentDescription = "세트 삭제",
+                                        tint = Color.White
+                                    )
+                                }
                             }
                         }
+                    }
 
-                        // 세트별 입력 필드 및 체크 버튼
-                        exerciseInputSections[exercise.exerciseId]?.forEachIndexed { index, (isSaved, inputState, setId) ->
-                            ExerciseInputSection(
-                                label = "세트 ${index + 1}",
-                                weight = inputState.value.first,
-                                repetitions = inputState.value.second,
-                                isSaved = isSaved,
-                                onWeightChange = { newWeight ->
-                                    inputState.value = inputState.value.copy(first = newWeight)
-                                },
-                                onRepetitionsChange = { newRepetitions ->
-                                    inputState.value =
-                                        inputState.value.copy(second = newRepetitions)
-                                },
-                                onSaveClicked = {
-                                    // 서버로 세트 저장
-                                    val currentTime = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").apply {
-                                        timeZone = java.util.TimeZone.getDefault()
-                                    }.format(java.util.Calendar.getInstance().time)
+                    // 삭제 버튼을 LazyColumn의 마지막에 추가
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
                                     CoroutineScope(Dispatchers.IO).launch {
                                         try {
-                                            val response = RetrofitInstance.api.createExerciseSet(
-                                                ExerciseSetDto(
-                                                    routineId = routineId,
-                                                    exerciseId = exercise.exerciseId,
-                                                    setNumber = index + 1,
-                                                    weight = inputState.value.first,
-                                                    repetitions = inputState.value.second,
-                                                    isCompleted = true,
-                                                    createdAt = currentTime
-                                                )
-                                            )
-                                            if (response.isSuccessful) {
-                                                exerciseInputSections =
-                                                    exerciseInputSections.toMutableMap().apply {
-                                                        val currentSets = getOrDefault(
-                                                            exercise.exerciseId,
-                                                            emptyList()
-                                                        ).toMutableList()
-                                                        currentSets[index] = Triple(
-                                                            true,
-                                                            inputState,
-                                                            response.body()?.setId
-                                                        )
-                                                        this[exercise.exerciseId] = currentSets
+                                            val exerciseResponse = RetrofitInstance.api.getExercisesByRoutineId(routineId)
+                                            if (exerciseResponse.isSuccessful) {
+                                                val exercises = exerciseResponse.body() ?: emptyList()
+                                                exercises.forEach { exercise ->
+                                                    val deleteExerciseResponse = RetrofitInstance.api.removeExerciseFromRoutine(
+                                                        routineId = routineId,
+                                                        exerciseId = exercise.exerciseId
+                                                    )
+                                                    if (!deleteExerciseResponse.isSuccessful) {
+                                                        withContext(Dispatchers.Main) {
+                                                            println("Failed to delete exercise: ${deleteExerciseResponse.errorBody()?.string()}")
+                                                        }
+                                                        return@forEach
                                                     }
+                                                }
+                                                val deleteRoutineResponse = RetrofitInstance.api.deleteRoutine(routineId)
+                                                if (deleteRoutineResponse.isSuccessful) {
+                                                    withContext(Dispatchers.Main) {
+                                                        navController.navigate("mainscreen") {
+                                                            popUpTo("mainscreen") { inclusive = true }
+                                                        }
+                                                    }
+                                                } else {
+                                                    withContext(Dispatchers.Main) {
+                                                        println("Failed to delete routine: ${deleteRoutineResponse.errorBody()?.string()}")
+                                                    }
+                                                }
                                             } else {
                                                 withContext(Dispatchers.Main) {
-                                                    errorMessage = "Failed to save set: ${
-                                                        response.errorBody()?.string()
-                                                    }"
+                                                    println("Failed to fetch exercises: ${exerciseResponse.errorBody()?.string()}")
                                                 }
                                             }
                                         } catch (e: Exception) {
                                             withContext(Dispatchers.Main) {
-                                                errorMessage =
-                                                    "Error saving set: ${e.localizedMessage}"
+                                                println("Error deleting routine: ${e.localizedMessage}")
                                             }
                                         }
                                     }
-                                }
-                            )
-
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBA0000)),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("삭제", color = Color.White)
+                            }
                         }
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                try {
-                                    // 1. 루틴에 포함된 운동 목록 가져오기
-                                    val exerciseResponse = RetrofitInstance.api.getExercisesByRoutineId(routineId)
-                                    if (exerciseResponse.isSuccessful) {
-                                        val exercises = exerciseResponse.body() ?: emptyList()
-
-                                        // 2. 각 운동 삭제 API 호출
-                                        exercises.forEach { exercise ->
-                                            val deleteExerciseResponse = RetrofitInstance.api.removeExerciseFromRoutine(
-                                                routineId = routineId,
-                                                exerciseId = exercise.exerciseId
-                                            )
-                                            if (!deleteExerciseResponse.isSuccessful) {
-                                                withContext(Dispatchers.Main) {
-                                                    println("Failed to delete exercise: ${deleteExerciseResponse.errorBody()?.string()}")
-                                                }
-                                                return@forEach
-                                            }
-                                        }
-
-                                        // 3. 루틴 삭제 API 호출
-                                        val deleteRoutineResponse = RetrofitInstance.api.deleteRoutine(routineId)
-                                        if (deleteRoutineResponse.isSuccessful) {
-                                            withContext(Dispatchers.Main) {
-                                                navController.navigate("mainscreen") {
-                                                    popUpTo("mainscreen") { inclusive = true }
-                                                }
-                                            }
-                                        } else {
-                                            withContext(Dispatchers.Main) {
-                                                println("Failed to delete routine: ${deleteRoutineResponse.errorBody()?.string()}")
-                                            }
-                                        }
-                                    } else {
-                                        withContext(Dispatchers.Main) {
-                                            println("Failed to fetch exercises: ${exerciseResponse.errorBody()?.string()}")
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    // 네트워크 또는 기타 예외 처리
-                                    withContext(Dispatchers.Main) {
-                                        println("Error deleting routine: ${e.localizedMessage}")
-                                    }
-                                }
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("삭제", color = Color.White)
-                    }
-
-
-                }
             }
         }
     }
 }
-

@@ -18,6 +18,8 @@ import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.RoutineDto
 import com.example.breakApp.jetpack.tools.BottomNavigationBar
 import com.example.breakApp.jetpack.tools.RoutineDialog
+import com.example.breakApp.tools.PreferenceManager
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +28,8 @@ fun MainScreen(navController: NavController) {
     var routines by remember { mutableStateOf<List<RoutineDto>>(emptyList()) } // 루틴 목록 상태
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var userName by remember { mutableStateOf("로딩 중...") }
+    val scope = rememberCoroutineScope()
 
     // 서버에서 루틴 목록 가져오기
     LaunchedEffect(Unit) {
@@ -44,6 +48,25 @@ fun MainScreen(navController: NavController) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                val token = PreferenceManager.getAccessToken()
+                if (!token.isNullOrEmpty()) {
+                    val response = RetrofitInstance.api.getMyInfo()
+                    if (response.isSuccessful && response.body()?.data != null) {
+                        userName = response.body()?.data?.userName ?: "알 수 없음"
+                    } else {
+                        userName = "정보를 불러올 수 없습니다."
+                    }
+                } else {
+                    userName = "로그인이 필요합니다."
+                }
+            } catch (e: Exception) {
+                userName = "오류 발생: ${e.message}"
+            }
+        }
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { com.example.breakApp.jetpack.tools.TopAppBar(navController) },
@@ -73,17 +96,12 @@ fun MainScreen(navController: NavController) {
                         .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp)) // 네모난 모양
                         .clickable { /* 클릭 시 다이얼로그 표시 */ } // 클릭 시 다이얼로그 표시
                         .padding(16.dp)
-                ) {
-                    val mainActivity = navController.context as? MainActivity
-                    Button(onClick = { mainActivity?.testBackendConnection() }) {
-                        Text("서버 연결 테스트")
-                    }
-                }
+                )
             }
 
             item {
                 Text(
-                    text = "내 루틴",
+                    text = userName + "님의 루틴 목록",
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.padding(top = 16.dp)
                 )
