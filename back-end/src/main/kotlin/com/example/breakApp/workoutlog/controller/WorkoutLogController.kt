@@ -35,6 +35,16 @@ class WorkoutLogController(
         return ResponseEntity.ok(completedWorkout)
     }
 
+    // 전체 WorkoutLogDto 조회
+    @GetMapping
+    fun getAllWorkoutLogs(
+        @RequestHeader("Authorization") token: String
+    ): ResponseEntity<List<WorkoutLogDto>> {
+        val extractedToken = extractBearerToken(token)
+        val workoutLogs = workoutLogService.getAllWorkoutLogs(extractedToken)
+        return ResponseEntity.ok(workoutLogs)
+    }
+
     // 완료된 운동 조회
     @GetMapping("/completed")
     fun getCompletedWorkouts(

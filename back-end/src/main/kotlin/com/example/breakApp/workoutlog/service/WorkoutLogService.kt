@@ -87,6 +87,19 @@ class WorkoutLogService(
         )
     }
 
+    // 전체 WorkoutLog 조회
+    @Transactional(readOnly = true)
+    fun getAllWorkoutLogs(token: String): List<WorkoutLogDto> {
+        val userId = jwtTokenProvider.getUserIdFromToken(token)
+
+        // 해당 사용자의 모든 WorkoutLog 조회
+        val workoutLogs = workoutLogRepository.findByMemberUserId(userId)
+
+        // WorkoutLog를 WorkoutLogDto로 변환하여 반환
+        return workoutLogs.map { it.toDto() }
+    }
+    
+    // 완료된 운동 조회
     fun getCompletedWorkouts(token: String): List<CompletedWorkoutDto> {
         val userId = jwtTokenProvider.getUserIdFromToken(token)
 
