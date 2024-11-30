@@ -66,11 +66,11 @@ interface ApiService {
     @GET("exercises")
     suspend fun getAllExercises(): Response<List<Exercise>>
 
-    // 이름으로 운동 데이터를 가져오는 API
     @GET("exercises/{name}")
     suspend fun getExerciseByName(
         @Path("name") name: String
-    ): Response<Exercise>
+    ): Response<Exercise> // 이 부분이 Exercise가 맞는지 확인하세요
+
 
     // 카테고리별 운동 데이터를 가져오는 API
     @GET("exercises/category/{bodyPart}")

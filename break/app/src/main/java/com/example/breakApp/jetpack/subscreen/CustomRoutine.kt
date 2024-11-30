@@ -37,66 +37,194 @@ import com.example.breakApp.api.model.ExerciseRequest
 import kotlinx.coroutines.launch
 
 @Composable
-fun CustomRoutine(navController: NavController) {
-    var selectedTarget by remember { mutableStateOf("가슴") } // 초기 카테고리
-    var showRoutineDialog by remember { mutableStateOf(true) } // 루틴 선택 다이얼로그 표시 여부
-    var selectedRoutine by remember { mutableStateOf<RoutineDto?>(null) } // 선택된 루틴
-    var userId by remember { mutableStateOf<Long?>(null) }
+fun ExerciseList(selectedTarget: String, selectedRoutineId: Long, searchQuery: String) {
+    var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var selectedExercise by remember { mutableStateOf<Long?>(null) }
 
-    // 루틴 초기화 및 생성 확인
-    LaunchedEffect(Unit) {
-        val token = PreferenceManager.getAccessToken()
-        if (token != null) {
-            try {
-                // 사용자 정보 가져오기
-                val response = RetrofitInstance.api.getMyInfo()
-                if (response.isSuccessful) {
-                    userId = response.body()?.data?.userId
-                    println("User ID fetched: $userId")
-                } else {
-                    println("Error fetching user info: ${response.errorBody()?.string()}")
-                    return@LaunchedEffect
-                }
+    val coroutineScope = rememberCoroutineScope()
 
-                // 사용자 정보가 없으면 중단
-                if (userId == null) {
-                    println("User ID not found")
-                    return@LaunchedEffect
-                }
+    // 서버에서 운동 목록 가져오기
+    LaunchedEffect(selectedTarget) {
+        try {
+            isLoading = true
+            errorMessage = null
+            val response = RetrofitInstance.api.getExercisesByTargetArea(selectedTarget)
+            if (response.isSuccessful) {
+                exercises = response.body() ?: emptyList() // 서버에서 받은 데이터를 저장
+            } else {
+                errorMessage = "운동 데이터를 가져오는 데 실패했습니다."
+            }
+        } catch (e: Exception) {
+            errorMessage = "오류 발생: ${e.localizedMessage}"
+        } finally {
+            isLoading = false
+        }
+    }
 
-                // 루틴 목록 가져오기
-                val routinesResponse = RetrofitInstance.api.getRoutineList()
-                val routines = routinesResponse.body() ?: emptyList()
-
-                // 루틴이 없으면 새 루틴 생성
-                if (routines.isEmpty()) {
-                    val defaultRoutine = RoutineDto(
-                        userId = userId!!, // 가져온 userId 사용
-                        name = "루틴 1"
-                    )
-                    val createResponse = RetrofitInstance.api.createRoutine(defaultRoutine)
-                    if (createResponse.isSuccessful) {
-                        selectedRoutine = createResponse.body() // 생성된 루틴 선택
-                        println("Default routine created: ${selectedRoutine?.routineId}")
-                    }
-                } else {
-                    selectedRoutine = routines.firstOrNull() // 첫 번째 루틴 선택
-                    println("First routine selected: ${selectedRoutine?.routineId}")
-                }
-            } catch (e: Exception) {
-                println("Exception during initialization: ${e.localizedMessage}")
+    // 검색어로 필터링된 데이터
+    val filteredExercises = remember(searchQuery, exercises) {
+        if (searchQuery.isBlank()) {
+            exercises // 검색어가 없으면 전체 데이터
+        } else {
+            exercises.filter { exercise ->
+                exercise.name.contains(searchQuery, ignoreCase = true)
             }
         }
     }
 
-    // 루틴 다이얼로그 표시
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 16.dp)
+            )
+        } else if (errorMessage != null) {
+            Text(
+                text = errorMessage ?: "",
+                color = Color.Red,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 16.dp)
+            )
+        } else {
+            LazyColumn(modifier = Modifier.padding(8.dp)) {
+                items(filteredExercises) { exercise ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .clickable {
+                                selectedExercise = if (selectedExercise == exercise.exerciseId) null else exercise.exerciseId
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(Color.DarkGray)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "${exercise.name} - ${exercise.target}",
+                            style = TextStyle(fontSize = 16.sp, color = Color.White),
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        if (selectedExercise == exercise.exerciseId) {
+                            IconButton(onClick = {
+                                coroutineScope.launch {
+                                    try {
+                                        val request = CreateRoutineExerciseRequest(
+                                            routineId = selectedRoutineId,
+                                            exercises = listOf(ExerciseRequest(exerciseId = exercise.exerciseId))
+                                        )
+                                        val response = RetrofitInstance.api.addExercisesToRoutine(request)
+                                        if (response.isSuccessful) {
+                                            selectedExercise = null
+                                        } else {
+                                            errorMessage = "운동 추가 실패: ${response.errorBody()?.string()}"
+                                        }
+                                    } catch (e: Exception) {
+                                        errorMessage = "오류 발생: ${e.localizedMessage}"
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_add),
+                                    contentDescription = "Add to Routine",
+                                    tint = Color(0xFFBA0000)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChanged: (String) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 16.dp)
+            .background(Color.DarkGray, shape = CircleShape)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        BasicTextField(
+            value = query,
+            onValueChange = { onQueryChanged(it) },
+            singleLine = true,
+            textStyle = TextStyle(fontSize = 16.sp, color = Color.White),
+            modifier = Modifier.fillMaxWidth(),
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    if (query.isEmpty()) {
+                        Text(
+                            text = "운동 검색...",
+                            style = TextStyle(fontSize = 16.sp, color = Color.Gray)
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun CustomRoutine(navController: NavController) {
+    var selectedTarget by remember { mutableStateOf("가슴") }
+    var showRoutineDialog by remember { mutableStateOf(true) }
+    var selectedRoutine by remember { mutableStateOf<RoutineDto?>(null) }
+    var userId by remember { mutableStateOf<Long?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        val token = PreferenceManager.getAccessToken()
+        if (token != null) {
+            try {
+                val response = RetrofitInstance.api.getMyInfo()
+                if (response.isSuccessful) {
+                    userId = response.body()?.data?.userId
+                }
+
+                if (userId == null) return@LaunchedEffect
+
+                val routinesResponse = RetrofitInstance.api.getRoutineList()
+                val routines = routinesResponse.body() ?: emptyList()
+
+                if (routines.isEmpty()) {
+                    val defaultRoutine = RoutineDto(userId = userId!!, name = "루틴 1")
+                    val createResponse = RetrofitInstance.api.createRoutine(defaultRoutine)
+                    if (createResponse.isSuccessful) {
+                        selectedRoutine = createResponse.body()
+                    }
+                } else {
+                    selectedRoutine = routines.firstOrNull()
+                }
+            } catch (e: Exception) {
+                println("Error: ${e.localizedMessage}")
+            }
+        }
+    }
+
     if (showRoutineDialog) {
         RoutineDialog(
-            onDismiss = { showRoutineDialog = false }, // 다이얼로그 닫기
+            onDismiss = { showRoutineDialog = false },
             onRoutineSelected = { routine ->
                 selectedRoutine = routine
-                showRoutineDialog = false // 다이얼로그 닫기
-                println("Routine selected from dialog: ${routine.routineId}")
+                showRoutineDialog = false
             }
         )
     }
@@ -111,47 +239,40 @@ fun CustomRoutine(navController: NavController) {
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // 선택된 루틴 표시
             if (selectedRoutine != null) {
                 Text(
                     text = "선택된 루틴: ${selectedRoutine?.name} (ID: ${selectedRoutine?.routineId})",
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             } else {
                 Text(
                     text = "루틴을 선택하세요",
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    color = Color.Gray
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
 
-            // 검색 바
-            SearchBar()
+            SearchBar(query = searchQuery, onQueryChanged = { searchQuery = it })
 
-            // 카테고리 필터
             CategoryFilters(selectedTarget) { target ->
-                selectedTarget = target // 선택된 카테고리 변경
+                selectedTarget = target
             }
 
-            Spacer(modifier = Modifier.height(16.dp)) // 카테고리와 운동 목록 사이의 간격
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // 선택된 카테고리와 루틴 ID를 기반으로 운동 목록 표시
-            selectedRoutine?.let { routine ->
-                println("Selected Routine: $routine")
-                if (routine.routineId != null && routine.routineId > 0) {
-                    ExerciseList(selectedTarget, routine.routineId) // selectedBodyPart -> selectedTarget
-                    println("Routine ID sent to ExerciseList: ${routine.routineId}")
-                } else {
-                    println("Invalid routine ID: ${routine.routineId}")
-                }
+            selectedRoutine?.routineId?.let { routineId ->
+                ExerciseList(
+                    selectedTarget = selectedTarget,
+                    selectedRoutineId = routineId,
+                    searchQuery = searchQuery
+                )
             }
         }
     }
 }
-
 
 
 @Composable
@@ -195,139 +316,6 @@ fun CategoryFilters(
                         .clickable { onTargetSelected(target) } // 클릭 시 선택된 타겟 전달
                 )
             }
-        }
-    }
-}
-
-
-@Composable
-fun ExerciseList(selectedTarget: String, selectedRoutineId: Long) {
-    var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var selectedExercise by remember { mutableStateOf<Long?>(null) } // 선택된 운동 ID를 저장
-
-    // CoroutineScope 추가
-    val coroutineScope = rememberCoroutineScope()
-
-    // 서버에서 운동 목록 가져오기
-    LaunchedEffect(selectedTarget) {
-        try {
-            isLoading = true
-            errorMessage = null
-            val response = RetrofitInstance.api.getExercisesByTargetArea(selectedTarget) // API 호출
-            if (response.isSuccessful) {
-                exercises = response.body() ?: emptyList() // List<Exercise>로 처리
-                println("Exercises fetched: $exercises") // 로그 추가
-                println("Selected Target: $selectedTarget")
-            } else {
-                errorMessage = "Error: ${response.errorBody()?.string()}"
-            }
-        } catch (e: Exception) {
-            errorMessage = "An error occurred: ${e.localizedMessage}"
-        } finally {
-            isLoading = false
-        }
-    }
-
-    // UI
-    Column(modifier = Modifier.fillMaxSize()) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 16.dp)
-            )
-        } else if (errorMessage != null) {
-            Text(
-                text = errorMessage ?: "",
-                color = Color.Red,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 16.dp)
-            )
-        } else {
-            LazyColumn(modifier = Modifier.padding(8.dp)) {
-                items(exercises) { exercise ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .clickable { selectedExercise = if (selectedExercise == exercise.exerciseId) null else exercise.exerciseId },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(Color.DarkGray)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = "${exercise.name} - ${exercise.target}", // 출력 변경
-                            style = TextStyle(fontSize = 16.sp, color = Color.White),
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        if (selectedExercise == exercise.exerciseId) {
-                            IconButton(onClick = {
-                                coroutineScope.launch {
-                                    try {
-                                        val request = CreateRoutineExerciseRequest(
-                                            routineId = selectedRoutineId,
-                                            exercises = listOf(ExerciseRequest(exerciseId = exercise.exerciseId))
-                                        )
-                                        println("Request Body Sent: $request")
-                                        val response = RetrofitInstance.api.addExercisesToRoutine(request)
-                                        if (response.isSuccessful) {
-                                            println("Exercise added successfully")
-                                            selectedExercise = null
-                                        } else {
-                                            errorMessage = "Error: ${response.errorBody()?.string()}"
-                                        }
-                                    } catch (e: Exception) {
-                                        errorMessage = "An error occurred: ${e.localizedMessage}"
-                                    }
-                                }
-                            }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_add),
-                                    contentDescription = "Add to Routine",
-                                    tint = Color(0xFFBA0000)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun SearchBar() {
-    val searchQuery = remember { mutableStateOf(TextFieldValue("")) }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp)
-    ) {
-        // 검색 바
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.DarkGray, shape = CircleShape)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            BasicTextField(
-                value = searchQuery.value,
-                onValueChange = { searchQuery.value = it },
-                singleLine = true,
-                textStyle = TextStyle(fontSize = 16.sp, color = Color.White),
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }

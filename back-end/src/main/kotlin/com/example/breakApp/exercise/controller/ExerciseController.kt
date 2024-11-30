@@ -43,7 +43,7 @@ class ExerciseController(
             ResponseEntity.status(HttpStatus.NOT_FOUND).build() // 조회 실패 시 HTTP 404 상태 코드 반환
         }
     }
-
+    
     @GetMapping("/category/{bodyPart}")
     fun getExercisesByCategory(@PathVariable bodyPart: String): List<Exercise> {
         // @GetMapping("/category/{category}"): URL에 /category/{category}를 포함하여 매핑되며, 특정 카테고리의 운동 데이터를 조회합니다.

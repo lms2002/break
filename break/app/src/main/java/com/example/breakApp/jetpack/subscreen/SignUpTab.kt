@@ -88,14 +88,7 @@ fun SignUpTab(navController: NavController) {
             verticalArrangement = Arrangement.Top
         ) {
             // 상태 메시지 표시
-            if (statusMessage.isNotBlank()) {
-                Text(
-                    text = statusMessage,
-                    color = Color.Red,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
+
 
             Text(text = "아이디", color = Color.White)
             BasicTextField(
@@ -255,7 +248,14 @@ fun SignUpTab(navController: NavController) {
                     }
                 }
             )
-
+            if (statusMessage.isNotBlank()) {
+                Text(
+                    text = statusMessage,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             Text(text = "이메일 인증", color = Color.White, modifier = Modifier.padding(top = 8.dp))
             Row(
