@@ -1,13 +1,17 @@
 package com.example.breakApp.jetpack.subscreen
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -16,12 +20,14 @@ import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.NotificationDto
 import kotlinx.coroutines.launch
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationTab(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     var notifications by remember { mutableStateOf<List<NotificationDto>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var expandedNotificationId by remember { mutableStateOf<Long?>(null) } // 현재 확장된 알림 ID
 
     // 알림 목록 가져오기
     LaunchedEffect(Unit) {
@@ -63,32 +69,12 @@ fun NotificationTab(navController: NavController) {
                 items(notifications) { notification ->
                     NotificationItem(
                         notification = notification,
+                        isExpanded = expandedNotificationId == notification.notificationId,
                         onClick = {
-                            coroutineScope.launch {
-                                try {
-                                    // 알림 읽음 처리 API 호출
-                                    val response = RetrofitInstance.api.markNotificationAsRead(notification.notificationId)
-                                    if (response.isSuccessful) {
-                                        // API 호출 성공 시 상태 강제 업데이트
-                                        notifications = notifications.map {
-                                            if (it.notificationId == notification.notificationId) {
-                                                it.copy(isRead = true) // 로컬에서 강제 업데이트
-                                            } else {
-                                                it
-                                            }
-                                        }
-                                        Log.d("Notification", "알림 읽음 처리 성공: ${notification.notificationId}")
-                                    } else {
-                                        errorMessage = "알림 읽음 처리 중 오류 발생: ${response.errorBody()?.string()}"
-                                        Log.e("Notification", "Error: ${response.errorBody()?.string()}")
-                                    }
-                                } catch (e: Exception) {
-                                    errorMessage = "네트워크 오류: ${e.localizedMessage}"
-                                    Log.e("Notification", "Network error: ${e.localizedMessage}")
-                                }
-                            }
-                        }
-                        ,
+                            // 클릭 시 확장 상태 토글
+                            expandedNotificationId =
+                                if (expandedNotificationId == notification.notificationId) null else notification.notificationId
+                        },
                         onDelete = {
                             coroutineScope.launch {
                                 try {
@@ -124,24 +110,27 @@ fun NotificationTab(navController: NavController) {
 @Composable
 fun NotificationItem(
     notification: NotificationDto,
+    isExpanded: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val backgroundColor = if (notification.isRead) androidx.compose.ui.graphics.Color.DarkGray else androidx.compose.ui.graphics.Color.Gray
+    val backgroundColor = if (isExpanded) Color(0xff636363)else if (notification.isRead) Color(0xFF2B2B2B) else Color(0xFF2B2B2B)
 
-    Surface(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
-            .clickable { onClick() },
-        color = backgroundColor,
-        shape = MaterialTheme.shapes.medium,
-        shadowElevation = 4.dp
+            .background(
+                color = backgroundColor,
+                shape = RoundedCornerShape(12.dp) // 모서리 둥글게 처리
+            )
+            .clickable { onClick() }
     ) {
+        // 기본 알림 내용
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
@@ -158,12 +147,18 @@ fun NotificationItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            // 삭제 버튼: 읽음 상태일 때만 표시
-            if (notification.isRead) {
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_delete),
-                        contentDescription = "Delete Notification"
+
+            // "지우기" 버튼: 확장 상태일 때만 표시
+            if (isExpanded) {
+                TextButton(
+                    onClick = onDelete,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                        .padding(start = 16.dp)
+                ) {
+                    Text(
+                        text = "지우기",
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }
