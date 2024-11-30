@@ -157,6 +157,9 @@ interface ApiService {
     @POST("workout-logs/{logId}/end")
     suspend fun endWorkout(@Path("logId") logId: Long): Response<WorkoutLogDto>
 
+    @GET("workout-logs")
+    suspend fun getAllWorkoutLogs(): Response<List<WorkoutLogDto>>
+
     @GET("workout-logs/completed")
     suspend fun getCompletedWorkouts(
     ): Response<List<CompletedWorkoutDto>>
