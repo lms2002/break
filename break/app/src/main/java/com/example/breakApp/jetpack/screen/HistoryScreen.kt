@@ -24,11 +24,16 @@ fun HistoryScreen(navController: NavController, selectedItemIndex: Int) {
             TopAppBar(
                 title = { Text("기록") },
                 actions = {
-                    IconButton(onClick = { /* 추가 버튼 클릭 시 동작 */
-                        navController.navigate("planSection") }) {
+                    IconButton(onClick = { navController.navigate("notification") }) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_add), // + 아이콘
-                            contentDescription = "Add"
+                            painter = painterResource(id = R.drawable.ic_notifications), // 알림 아이콘
+                            contentDescription = "Notifications"
+                        )
+                    }
+                    IconButton(onClick = { navController.navigate("settings") }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_setting), // 설정 아이콘
+                            contentDescription = "Settings"
                         )
                     }
                 }
