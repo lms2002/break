@@ -12,8 +12,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.breakApp.api.RetrofitInstance
 import com.example.breakApp.api.model.UpdateDtoRequest
+import com.example.breakApp.tools.PreferenceManager
 import kotlinx.coroutines.launch
-
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +25,10 @@ fun SettingTab(navController: NavController) {
     var errorMessage by remember { mutableStateOf<String?>(null) } // 에러 메시지 상태
     val coroutineScope = rememberCoroutineScope()
 
+    fun clearToken() {
+        PreferenceManager.clearAccessToken()
+        println("AccessToken이 초기화되었습니다.")
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -35,43 +41,63 @@ fun SettingTab(navController: NavController) {
             )
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 알림 설정
-            Text(
-                text = "알림 설정",
-                style = MaterialTheme.typography.bodyLarge,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { /* 알림 설정 클릭 시 동작 추가 */ }
-                    .padding(16.dp)
-            )
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // 알림 설정
+                Text(
+                    text = "알림 설정",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { /* 알림 설정 클릭 시 동작 추가 */ }
+                        .padding(16.dp)
+                )
 
-            // 이름 변경
-            Text(
-                text = "이름 변경",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showNameDialog = true } // 이름 변경 다이얼로그 표시
-                    .padding(16.dp)
-            )
+                // 이름 변경
+                Text(
+                    text = "이름 변경",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showNameDialog = true }
+                        .padding(16.dp)
+                )
 
-            // 비밀번호 변경
+                // 비밀번호 변경
+                Text(
+                    text = "비밀번호 변경",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showPasswordDialog = true }
+                        .padding(16.dp)
+                )
+            }
+
+            // 로그아웃 버튼을 화면 아래 가운데에 배치
             Text(
-                text = "비밀번호 변경",
+                text = "로그아웃",
+                color = Color.Gray,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showPasswordDialog = true } // 비밀번호 변경 다이얼로그 표시
-                    .padding(16.dp)
+                    .align(Alignment.BottomCenter) // BoxScope에서 align 사용
+                    .clickable {
+                        clearToken()
+                        navController.navigate("loginScreen")
+                    }
+                    .padding(16.dp, bottom = 12.dp)
             )
         }
+
 
         // 이름 변경 다이얼로그
         if (showNameDialog) {
@@ -122,17 +148,6 @@ fun SettingTab(navController: NavController) {
                         }
                     }
                 }
-            )
-        }
-
-        // 에러 메시지 표시
-        errorMessage?.let { message ->
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
             )
         }
     }

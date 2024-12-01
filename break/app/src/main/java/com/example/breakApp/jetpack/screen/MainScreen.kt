@@ -84,20 +84,6 @@ fun MainScreen(navController: NavController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            item {
-                Text(
-                    text = "내일 할 일",
-                    style = MaterialTheme.typography.titleSmall
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(90.dp) // 높이 설정
-                        .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp)) // 네모난 모양
-                        .clickable { /* 클릭 시 다이얼로그 표시 */ } // 클릭 시 다이얼로그 표시
-                        .padding(16.dp)
-                )
-            }
 
             item {
                 Text(
