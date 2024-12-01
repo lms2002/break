@@ -91,7 +91,7 @@ class MemberService(
         val verificationToken = VerificationToken(
             token = verificationCode,
             member = null,  // 아직 회원가입 전이므로 회원 정보는 없을 수 있습니다.
-            expiryDate = LocalDateTime.now().plusMinutes(5)
+            expiryDate = LocalDateTime.now().plusMinutes(5) // 인증번호 유효기간 5분
         )
         verificationTokenRepository.save(verificationToken)
 
@@ -133,7 +133,14 @@ class MemberService(
         val message = SimpleMailMessage()
         message.setTo(email)
         message.subject = "이메일 인증 코드"
-        message.text = "회원가입 인증 코드는 다음과 같습니다: $code"
+        message.text = """
+        안녕하세요,
+        
+        회원가입을 위한 인증 코드는 다음과 같습니다:
+        [$code]
+        
+        이 인증 코드는 발송 후 5분 동안 유효합니다.
+    """.trimIndent()
         emailSender.send(message)
     }
 
