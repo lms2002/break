@@ -305,7 +305,7 @@ fun SignUpTab(navController: NavController) {
                                     withContext(Dispatchers.Main) {
                                         if (response.isSuccessful) {
                                             val message = response.body()
-                                            statusMessage = "이메일 전송 성공: $message"
+                                            statusMessage = "$message"
                                             Log.d("SignUpTab", statusMessage)
                                         } else {
                                             statusMessage = "이메일 전송 실패: ${response.errorBody()?.string()}"
