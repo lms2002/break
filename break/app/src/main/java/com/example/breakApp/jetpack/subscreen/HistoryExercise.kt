@@ -15,6 +15,7 @@ import com.example.breakApp.api.model.Exercise
 import com.example.breakApp.api.model.ExerciseSetDto
 import com.example.breakApp.api.model.WorkoutLogDto
 import com.example.breakApp.jetpack.tools.Calendar
+import com.example.breakApp.jetpack.tools.CustomCalendar
 import kotlinx.coroutines.launch
 
 @Composable
@@ -26,6 +27,8 @@ fun HistoryExercise(navController: NavController) {
     var exercises by remember { mutableStateOf<List<Exercise>>(emptyList()) } // 운동 목록
     var sortedSets by remember { mutableStateOf<List<ExerciseSetDto>>(emptyList()) } // 필터링 및 정렬된 세트 데이터
     val coroutineScope = rememberCoroutineScope()
+
+    var workoutDates by remember { mutableStateOf<Set<String>>(emptySet()) } // 운동 날짜 저장
 
     var selectedDate by remember { mutableStateOf("") } // 캘린더에서 선택된 날짜
 
@@ -93,27 +96,47 @@ fun HistoryExercise(navController: NavController) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            try {
+                val response = RetrofitInstance.api.getAllWorkoutLogs()
+                if (response.isSuccessful) {
+                    workoutLogs = response.body() ?: emptyList()
+                    workoutDates = workoutLogs.map { it.startTime.substring(0, 10) }.toSet() // 날짜 추출
+                }
+            } catch (e: Exception) {
+                // 오류 처리
+            }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Text(text = "운동 기록", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
 
         // 캘린더 컴포넌트
-        Calendar(onDateSelected = { year, month, day ->
-            selectedDate = "$year-${String.format("%02d", month + 1)}-${String.format("%02d", day)}"
-            coroutineScope.launch {
-                // 선택된 날짜에 해당하는 세트 필터링 및 정렬
-                sortedSets = sets.filter {
-                    it.createdAt.startsWith(selectedDate) // 날짜 필터링
-                }.sortedBy {
-                    it.createdAt // 생성 시간 기준으로 정렬
-                }
-                showDialog = true // 다이얼로그 표시
-            }
-        })
+        CustomCalendar(
+            workoutDates = workoutDates, // 운동 날짜 전달
+            onDateSelected = { year, month, day ->
+                val selectedDateFormatted = "$year-${String.format("%02d", month + 1)}-${String.format("%02d", day)}"
+                selectedDate = selectedDateFormatted // 선택된 날짜 업데이트
+                Log.d("SelectedDate", "Selected Date: $selectedDateFormatted")
 
-        // 에러 메시지 출력
-        errorMessage?.let {
-            Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
-        }
+                coroutineScope.launch {
+                    try {
+                        // 선택된 날짜에 해당하는 세트 필터링 및 정렬
+                        sortedSets = sets.filter { it.createdAt.startsWith(selectedDateFormatted) }
+                            .sortedBy { it.createdAt }
+                        Log.d("SortedSets", "Filtered sets: $sortedSets")
+
+                        // 다이얼로그 표시
+                        showDialog = true
+                    } catch (e: Exception) {
+                        Log.e("DataError", "Error filtering data for selected date: ${e.localizedMessage}")
+                    }
+                }
+            }
+        )
+
     }
 
     // 정렬된 데이터를 다이얼로그로 출력
